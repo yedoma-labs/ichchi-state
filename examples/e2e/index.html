@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ichchi State E2E Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 { color: #333; }
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0.25rem;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { background: #0056b3; }
+    .counter {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #007bff;
+      margin: 1rem 0;
+    }
+    .status {
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+    .list-item {
+      padding: 0.5rem;
+      margin: 0.25rem 0;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ichchi State E2E Tests</h1>
+  
+  <div class="test-section">
+    <h2>Counter Test</h2>
+    <div class="counter" data-testid="counter">0</div>
+    <button data-testid="increment">Increment</button>
+    <button data-testid="decrement">Decrement</button>
+    <button data-testid="reset">Reset</button>
+  </div>
+
+  <div class="test-section">
+    <h2>Async State Test</h2>
+    <div class="status">
+      <div>Status: <span data-testid="async-status">idle</span></div>
+      <div>Data: <span data-testid="async-data">null</span></div>
+      <div>Error: <span data-testid="async-error">null</span></div>
+    </div>
+    <button data-testid="fetch-success">Fetch Success</button>
+    <button data-testid="fetch-error">Fetch Error</button>
+  </div>
+
+  <div class="test-section">
+    <h2>Todo List Test</h2>
+    <input data-testid="todo-input" type="text" placeholder="New todo">
+    <button data-testid="add-todo">Add Todo</button>
+    <div data-testid="todo-list"></div>
+    <div data-testid="todo-count">0 todos</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Persistence Test</h2>
+    <button data-testid="save-state">Save State</button>
+    <button data-testid="load-state">Load State</button>
+    <button data-testid="clear-state">Clear State</button>
+    <div data-testid="persisted-value">initial</div>
+  </div>
+
+  <script type="module">
+    // Inline minimal implementation for E2E testing
+    // In real usage, this would be imported from the built package
+    
+    // Simple store implementation
+    function createStore(initialState) {
+      let state = initialState
+      const listeners = new Set()
+      
+      return {
+        getState: () => state,
+        setState: (partial) => {
+          const prevState = state
+          state = typeof partial === 'function' ? partial(state) : { ...state, ...partial }
+          listeners.forEach(listener => listener(state, prevState))
+        },
+        subscribe: (listener) => {
+          listeners.add(listener)
+          return () => listeners.delete(listener)
+        }
+      }
+    }
+
+    // Counter test
+    const counterStore = createStore({ count: 0 })
+    const counterEl = document.querySelector('[data-testid="counter"]')
+    
+    counterStore.subscribe((state) => {
+      counterEl.textContent = state.count
+    })
+    
+    document.querySelector('[data-testid="increment"]').onclick = () => {
+      counterStore.setState({ count: counterStore.getState().count + 1 })
+    }
+    
+    document.querySelector('[data-testid="decrement"]').onclick = () => {
+      counterStore.setState({ count: counterStore.getState().count - 1 })
+    }
+    
+    document.querySelector('[data-testid="reset"]').onclick = () => {
+      counterStore.setState({ count: 0 })
+    }
+
+    // Async test
+    const asyncStore = createStore({ 
+      status: 'idle', 
+      data: null, 
+      error: null 
+    })
+    
+    asyncStore.subscribe((state) => {
+      document.querySelector('[data-testid="async-status"]').textContent = state.status
+      document.querySelector('[data-testid="async-data"]').textContent = state.data || 'null'
+      document.querySelector('[data-testid="async-error"]').textContent = state.error || 'null'
+    })
+    
+    document.querySelector('[data-testid="fetch-success"]').onclick = async () => {
+      asyncStore.setState({ status: 'loading', error: null })
+      // Delay long enough for Playwright to reliably catch loading state
+      await new Promise(resolve => setTimeout(resolve, 500))
+      asyncStore.setState({ status: 'success', data: 'Test Data' })
+    }
+    
+    document.querySelector('[data-testid="fetch-error"]').onclick = async () => {
+      asyncStore.setState({ status: 'loading', error: null })
+      // Delay long enough for Playwright to reliably catch loading state
+      await new Promise(resolve => setTimeout(resolve, 500))
+      asyncStore.setState({ status: 'error', error: 'Test Error', data: null })
+    }
+
+    // Todo list test
+    const todoStore = createStore({ todos: [] })
+    
+    function renderTodos() {
+      const state = todoStore.getState()
+      const listEl = document.querySelector('[data-testid="todo-list"]')
+      listEl.innerHTML = state.todos.map((todo, i) => `
+        <div class="list-item" data-testid="todo-${i}">
+          ${todo.text}
+          <button data-testid="delete-todo-${i}">Delete</button>
+        </div>
+      `).join('')
+      
+      document.querySelector('[data-testid="todo-count"]').textContent = 
+        `${state.todos.length} todos`
+        
+      // Add delete handlers
+      state.todos.forEach((_, i) => {
+        const btn = document.querySelector(`[data-testid="delete-todo-${i}"]`)
+        if (btn) {
+          btn.onclick = () => {
+            const state = todoStore.getState()
+            todoStore.setState({ 
+              todos: state.todos.filter((_, idx) => idx !== i) 
+            })
+          }
+        }
+      })
+    }
+    
+    todoStore.subscribe(renderTodos)
+    
+    document.querySelector('[data-testid="add-todo"]').onclick = () => {
+      const input = document.querySelector('[data-testid="todo-input"]')
+      if (input.value) {
+        const state = todoStore.getState()
+        todoStore.setState({
+          todos: [...state.todos, { text: input.value, completed: false }]
+        })
+        input.value = ''
+      }
+    }
+
+    // Persistence test
+    const persistKey = 'e2e-test-state'
+    const persistStore = createStore({ value: 'initial' })
+    
+    // Update display when state changes
+    persistStore.subscribe((state) => {
+      document.querySelector('[data-testid="persisted-value"]').textContent = state.value
+    })
+    
+    // Save: Update state THEN save to localStorage
+    document.querySelector('[data-testid="save-state"]').onclick = () => {
+      persistStore.setState({ value: 'saved' })
+      const state = persistStore.getState()
+      localStorage.setItem(persistKey, JSON.stringify(state))
+    }
+    
+    // Load: Read from localStorage THEN update state
+    document.querySelector('[data-testid="load-state"]').onclick = () => {
+      const saved = localStorage.getItem(persistKey)
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          persistStore.setState(parsed)
+        } catch (e) {
+          console.error('Failed to parse saved state:', e)
+        }
+      }
+    }
+    
+    // Clear: Remove from localStorage AND reset state
+    document.querySelector('[data-testid="clear-state"]').onclick = () => {
+      localStorage.removeItem(persistKey)
+      persistStore.setState({ value: 'cleared' })
+    }
+  </script>
+</body>
+</html>

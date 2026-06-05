@@ -1,0 +1,67 @@
+# Dependencies
+node_modules
+
+# Lock files (we use pnpm-lock.yaml only)
+package-lock.json
+yarn.lock
+bun.lock
+
+# Build outputs
+dist
+*.tsbuildinfo
+
+# Test coverage
+coverage
+.nyc_output
+*.lcov
+
+# Vitest
+.vitest
+
+# Playwright
+test-results
+playwright-report
+playwright/.cache
+
+# IDE & Editors
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Testing artifacts
+*.html.tmp
+.cache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.tmp
+.temp
+
+# Session files (from Cave/Caveman)
+*.jsonl
+caveman-code-session-*.html
+
+# Security reports (internal use only)
+SECURITY.md
+SECURITY_REVIEW_SUMMARY.md

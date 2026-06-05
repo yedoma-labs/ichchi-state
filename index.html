@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="0; url=/examples/demo/">
+  <title>Ichchi State - Redirecting to Demo...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      color: white;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+    a {
+      color: white;
+      text-decoration: underline;
+    }
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-top: 1rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🪶 Ichchi State</h1>
+    <p>Redirecting to demo...</p>
+    <div class="spinner"></div>
+    <p style="margin-top: 2rem; font-size: 0.9rem;">
+      If not redirected automatically, <a href="/examples/demo/">click here</a>
+    </p>
+  </div>
+  <script>
+    // Fallback redirect if meta refresh fails
+    setTimeout(() => {
+      window.location.href = '/examples/demo/';
+    }, 100);
+  </script>
+</body>
+</html>

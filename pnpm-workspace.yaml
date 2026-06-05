@@ -1,0 +1,6 @@
+# pnpm workspace configuration
+packages:
+  - '.'
+
+allowBuilds:
+  esbuild: true

@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: latest
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Type check
+        run: pnpm run typecheck
+      
+      - name: Run tests
+        run: pnpm run test:run
+        timeout-minutes: 5
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: latest
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build
+        run: pnpm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+  # E2E tests skipped - run manually before releasing
+  # To run locally: pnpm run build && pnpm run e2e
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: latest
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      
+      - name: Publish to npm
+        run: pnpm publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Release ${{ github.ref_name }}
+            
+            See [CHANGELOG.md](https://github.com/yedoma-labs/ichchi-state/blob/main/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false

@@ -1,0 +1,5 @@
+e2e/**
+playwright-report/**
+node_modules/**
+dist/**
+.git/**
