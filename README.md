@@ -1,5 +1,13 @@
 # @yedoma-labs/ichchi-state
 
+[![CI](https://github.com/yedoma-labs/ichchi-state/actions/workflows/ci.yml/badge.svg)](https://github.com/yedoma-labs/ichchi-state/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@yedoma-labs/ichchi-state)](https://www.npmjs.com/package/@yedoma-labs/ichchi-state)
+[![npm downloads](https://img.shields.io/npm/dm/@yedoma-labs/ichchi-state)](https://www.npmjs.com/package/@yedoma-labs/ichchi-state)
+[![Node.js](https://img.shields.io/node/v/@yedoma-labs/ichchi-state)](https://www.npmjs.com/package/@yedoma-labs/ichchi-state)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x+-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
+[![License](https://img.shields.io/npm/l/@yedoma-labs/ichchi-state)](LICENSE)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@yedoma-labs/ichchi-state)](https://bundlephobia.com/package/@yedoma-labs/ichchi-state)
+
 Lightweight, TypeScript-first state manager with DevTools and time-travel debugging.
 
 > **About the name:** *ichchi* (иччи) comes from the Yakutian (Sakha) language, meaning "guardian spirit" — protective spirits that watch over places, objects, and natural phenomena. Like the permafrost (yedoma) preserves ancient matter, ichchi guards and preserves the essential state of your application.
