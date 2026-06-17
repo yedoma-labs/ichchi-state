@@ -45,14 +45,14 @@ beforeAll(() => {
   
   // Polyfill localStorage/sessionStorage if not available
   if (typeof localStorage === 'undefined') {
-    Object.defineProperty(global, 'localStorage', {
+    Object.defineProperty(globalThis, 'localStorage', {
       value: new MockStorage(),
       writable: true,
       configurable: true
     })
   }
   if (typeof sessionStorage === 'undefined') {
-    Object.defineProperty(global, 'sessionStorage', {
+    Object.defineProperty(globalThis, 'sessionStorage', {
       value: new MockStorage(),
       writable: true,
       configurable: true
@@ -62,9 +62,9 @@ beforeAll(() => {
 
 // Mock crypto.randomUUID for tests
 if (typeof crypto === 'undefined') {
-  global.crypto = {
+  (globalThis as any).crypto = {
     randomUUID: () => Math.random().toString(36).substring(2, 15),
-  } as any
+  }
 }
 
 // Clean up after each test
