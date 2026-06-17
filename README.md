@@ -9,7 +9,7 @@
 [![npm version](https://img.shields.io/npm/v/@yedoma-labs/ichchi-state)](https://www.npmjs.com/package/@yedoma-labs/ichchi-state)
 [![npm downloads](https://img.shields.io/npm/dm/@yedoma-labs/ichchi-state)](https://www.npmjs.com/package/@yedoma-labs/ichchi-state)
 [![Node.js](https://img.shields.io/node/v/@yedoma-labs/ichchi-state)](https://www.npmjs.com/package/@yedoma-labs/ichchi-state)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x+-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.x+-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 [![License](https://img.shields.io/npm/l/@yedoma-labs/ichchi-state)](LICENSE)
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/@yedoma-labs/ichchi-state)](https://bundlephobia.com/package/@yedoma-labs/ichchi-state)
 
