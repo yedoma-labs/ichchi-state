@@ -80,7 +80,7 @@
     "simple-git-hooks": "^2.13.1",
     "tsup": "^8.5.1",
     "typescript": "6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^5.0.0"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
