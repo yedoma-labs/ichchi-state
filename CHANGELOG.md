@@ -1,3 +1,10 @@
+## [0.1.1](https://github.com/yedoma-labs/ichchi-state/compare/v0.1.0...v0.1.1) (2026-10-10)
+
+
+### Bug Fixes
+
+* typescript 6.0.3 compatibility - add ignoreDeprecations and types config ([fb4d65e](https://github.com/yedoma-labs/ichchi-state/commit/fb4d65ecbc599629da29646c05b7fd7b282efc2b))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
