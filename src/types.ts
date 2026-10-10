@@ -17,13 +17,11 @@ export interface PersistConfig<T> {
   partialize?: (state: T) => Partial<T>
 }
 
-export interface Middleware<T> {
-  (store: Store<T>): (next: SetStateFn<T>) => SetStateFn<T>
-}
+export type Middleware<T> = (store: Store<T>) => (next: SetStateFn<T>) => SetStateFn<T>
 
 export type SetStateFn<T> = (
   partial: Partial<T> | ((state: T) => Partial<T>),
-  actionName?: string
+  actionName?: string,
 ) => void
 
 export interface Store<T> {
@@ -36,5 +34,5 @@ export interface Store<T> {
 export interface DevToolsConnection {
   init: (state: unknown) => void
   send: (action: { type: string }, state: unknown) => void
-  subscribe: (listener: (message: any) => void) => Unsubscribe
+  subscribe: (listener: (message: unknown) => void) => Unsubscribe
 }

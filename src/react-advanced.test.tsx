@@ -1,24 +1,23 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, waitFor, act } from '@testing-library/react'
-import { renderHook } from '@testing-library/react'
-import { createStore } from './store'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import type { AsyncState } from './async-state'
 import {
+  useAsync,
+  useBatchedMutations,
   useComputed,
   useField,
-  useAsync,
-  useOptimistic,
   useFields,
-  useBatchedMutations
+  useOptimistic,
 } from './react-advanced'
-import type { AsyncState } from './async-state'
+import { createStore } from './store'
 
 describe('React Advanced Hooks', () => {
   describe('useComputed', () => {
     it('should compute derived value', () => {
       const store = createStore({ count: 5, multiplier: 2 })
-      
+
       const { result } = renderHook(() =>
-        useComputed(store, state => state.count * state.multiplier)
+        useComputed(store, (state) => state.count * state.multiplier),
       )
 
       expect(result.current).toBe(10)
@@ -26,9 +25,9 @@ describe('React Advanced Hooks', () => {
 
     it('should update when dependencies change', async () => {
       const store = createStore({ count: 5, multiplier: 2 })
-      
+
       const { result } = renderHook(() =>
-        useComputed(store, state => state.count * state.multiplier)
+        useComputed(store, (state) => state.count * state.multiplier),
       )
 
       expect(result.current).toBe(10)
@@ -47,8 +46,8 @@ describe('React Advanced Hooks', () => {
       let multiplier = 2
 
       const { result, rerender } = renderHook(
-        ({ m }) => useComputed(store, state => state.count * m, [m]),
-        { initialProps: { m: multiplier } }
+        ({ m }) => useComputed(store, (state) => state.count * m, [m]),
+        { initialProps: { m: multiplier } },
       )
 
       expect(result.current).toBe(10)
@@ -64,16 +63,16 @@ describe('React Advanced Hooks', () => {
     it('should handle complex computations', async () => {
       const store = createStore({
         items: [1, 2, 3, 4, 5],
-        filter: 'even'
+        filter: 'even',
       })
 
       const { result } = renderHook(() =>
-        useComputed(store, state => {
+        useComputed(store, (state) => {
           if (state.filter === 'even') {
-            return state.items.filter(n => n % 2 === 0)
+            return state.items.filter((n) => n % 2 === 0)
           }
-          return state.items.filter(n => n % 2 !== 0)
-        })
+          return state.items.filter((n) => n % 2 !== 0)
+        }),
       )
 
       expect(result.current).toEqual([2, 4])
@@ -91,7 +90,7 @@ describe('React Advanced Hooks', () => {
   describe('useField', () => {
     it('should subscribe to specific field', () => {
       const store = createStore({ count: 5, name: 'Alice' })
-      
+
       const { result } = renderHook(() => useField(store, 'count'))
 
       expect(result.current).toBe(5)
@@ -99,7 +98,7 @@ describe('React Advanced Hooks', () => {
 
     it('should update when field changes', async () => {
       const store = createStore({ count: 5, name: 'Alice' })
-      
+
       const { result } = renderHook(() => useField(store, 'count'))
 
       expect(result.current).toBe(5)
@@ -115,7 +114,7 @@ describe('React Advanced Hooks', () => {
 
     it('should not update when other fields change', async () => {
       const store = createStore({ count: 5, name: 'Alice' })
-      
+
       const { result } = renderHook(() => useField(store, 'count'))
       const initialRenderCount = result.current
 
@@ -131,17 +130,15 @@ describe('React Advanced Hooks', () => {
   describe('useAsync', () => {
     it('should provide refetch function', async () => {
       const store = createStore<{ user: AsyncState<{ name: string }> }>({
-        user: { data: null, loading: false, error: null, timestamp: null }
+        user: { data: null, loading: false, error: null, timestamp: null },
       })
 
       const fetchUser = vi.fn(async () => {
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise((resolve) => setTimeout(resolve, 10))
         return { name: 'Alice' }
       })
 
-      const { result } = renderHook(() =>
-        useAsync(store, 'user', fetchUser, { enabled: false })
-      )
+      const { result } = renderHook(() => useAsync(store, 'user', fetchUser, { enabled: false }))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.data).toBeNull()
@@ -150,14 +147,12 @@ describe('React Advanced Hooks', () => {
 
     it('should provide error property', async () => {
       const store = createStore<{ user: AsyncState<any> }>({
-        user: { data: null, loading: false, error: new Error('Test error'), timestamp: null }
+        user: { data: null, loading: false, error: new Error('Test error'), timestamp: null },
       })
 
       const fetchUser = vi.fn(async () => ({ name: 'Alice' }))
 
-      const { result } = renderHook(() =>
-        useAsync(store, 'user', fetchUser, { enabled: false })
-      )
+      const { result } = renderHook(() => useAsync(store, 'user', fetchUser, { enabled: false }))
 
       expect(result.current.error).toBeTruthy()
       expect(result.current.error?.message).toBe('Test error')
@@ -165,17 +160,15 @@ describe('React Advanced Hooks', () => {
 
     it('should auto-fetch when enabled', async () => {
       const store = createStore<{ user: AsyncState<{ name: string }> }>({
-        user: { data: null, loading: false, error: null, timestamp: null }
+        user: { data: null, loading: false, error: null, timestamp: null },
       })
 
       const fetchUser = vi.fn(async () => {
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise((resolve) => setTimeout(resolve, 10))
         return { name: 'Alice' }
       })
 
-      renderHook(() =>
-        useAsync(store, 'user', fetchUser, { enabled: true })
-      )
+      renderHook(() => useAsync(store, 'user', fetchUser, { enabled: true }))
 
       await waitFor(() => {
         expect(fetchUser).toHaveBeenCalled()
@@ -184,34 +177,30 @@ describe('React Advanced Hooks', () => {
 
     it('should not auto-fetch when disabled', async () => {
       const store = createStore<{ user: AsyncState<{ name: string }> }>({
-        user: { data: null, loading: false, error: null, timestamp: null }
+        user: { data: null, loading: false, error: null, timestamp: null },
       })
 
       const fetchUser = vi.fn(async () => ({ name: 'Alice' }))
 
-      renderHook(() =>
-        useAsync(store, 'user', fetchUser, { enabled: false })
-      )
+      renderHook(() => useAsync(store, 'user', fetchUser, { enabled: false }))
 
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await new Promise((resolve) => setTimeout(resolve, 50))
 
       expect(fetchUser).not.toHaveBeenCalled()
     })
 
     it('should expose invalidate function', async () => {
       const store = createStore<{ user: AsyncState<{ name: string }> }>({
-        user: { data: { name: 'Alice' }, loading: false, error: null, timestamp: null }
+        user: { data: { name: 'Alice' }, loading: false, error: null, timestamp: null },
       })
 
       const fetchUser = async () => ({ name: 'Bob' })
 
-      const { result } = renderHook(() =>
-        useAsync(store, 'user', fetchUser, { enabled: false })
-      )
+      const { result } = renderHook(() => useAsync(store, 'user', fetchUser, { enabled: false }))
 
       expect(result.current.data).toEqual({ name: 'Alice' })
       expect(typeof result.current.invalidate).toBe('function')
-      
+
       // Call invalidate
       await act(async () => {
         result.current.invalidate()
@@ -225,24 +214,20 @@ describe('React Advanced Hooks', () => {
   describe('useOptimistic', () => {
     it('should perform optimistic updates', async () => {
       const store = createStore({ count: 0 })
-      
+
       const { result } = renderHook(() => useOptimistic(store))
 
       const asyncAction = vi.fn(async () => {
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise((resolve) => setTimeout(resolve, 50))
         return 'success'
       })
 
       await act(async () => {
-        const promise = result.current.optimistic(
-          'update-1',
-          () => ({ count: 10 }),
-          asyncAction
-        )
-        
+        const promise = result.current.optimistic('update-1', () => ({ count: 10 }), asyncAction)
+
         // State should update immediately
         expect(store.getState().count).toBe(10)
-        
+
         await promise
       })
 
@@ -252,22 +237,18 @@ describe('React Advanced Hooks', () => {
 
     it('should rollback on error', async () => {
       const store = createStore({ count: 0 })
-      
+
       const { result } = renderHook(() => useOptimistic(store))
 
       const failingAction = async () => {
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise((resolve) => setTimeout(resolve, 10))
         throw new Error('Failed')
       }
 
       await act(async () => {
         try {
-          await result.current.optimistic(
-            'update-1',
-            () => ({ count: 10 }),
-            failingAction
-          )
-        } catch (err) {
+          await result.current.optimistic('update-1', () => ({ count: 10 }), failingAction)
+        } catch (_err) {
           // Expected to fail
         }
       })
@@ -279,42 +260,34 @@ describe('React Advanced Hooks', () => {
 
     it('should check pending status', async () => {
       const store = createStore({ count: 0 })
-      
+
       const { result } = renderHook(() => useOptimistic(store))
 
       const slowAction = async () => {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise((resolve) => setTimeout(resolve, 100))
         return 'done'
       }
 
       await act(async () => {
-        result.current.optimistic(
-          'update-1',
-          () => ({ count: 10 }),
-          slowAction
-        )
-        
+        result.current.optimistic('update-1', () => ({ count: 10 }), slowAction)
+
         expect(result.current.isPending('update-1')).toBe(true)
       })
     })
 
     it('should get pending updates', async () => {
       const store = createStore({ count: 0 })
-      
+
       const { result } = renderHook(() => useOptimistic(store))
 
       const slowAction = async () => {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise((resolve) => setTimeout(resolve, 100))
         return 'done'
       }
 
       await act(async () => {
-        result.current.optimistic(
-          'update-1',
-          () => ({ count: 10 }),
-          slowAction
-        )
-        
+        result.current.optimistic('update-1', () => ({ count: 10 }), slowAction)
+
         const pending = result.current.getPending()
         expect(pending).toContain('update-1')
       })
@@ -322,27 +295,23 @@ describe('React Advanced Hooks', () => {
 
     it('should manually rollback update', async () => {
       const store = createStore({ count: 0 })
-      
+
       const { result } = renderHook(() => useOptimistic(store))
 
       const slowAction = async () => {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise((resolve) => setTimeout(resolve, 100))
         return 'done'
       }
 
       await act(async () => {
-        result.current.optimistic(
-          'update-1',
-          () => ({ count: 10 }),
-          slowAction
-        )
-        
+        result.current.optimistic('update-1', () => ({ count: 10 }), slowAction)
+
         expect(store.getState().count).toBe(10)
-        
+
         result.current.rollback('update-1')
-        
+
         // Give time for rollback
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise((resolve) => setTimeout(resolve, 10))
       })
 
       expect(store.getState().count).toBe(0)
@@ -350,23 +319,23 @@ describe('React Advanced Hooks', () => {
 
     it('should rollback all updates', async () => {
       const store = createStore({ count: 0 })
-      
+
       const { result } = renderHook(() => useOptimistic(store))
 
       const slowAction = async () => {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise((resolve) => setTimeout(resolve, 100))
         return 'done'
       }
 
       await act(async () => {
         result.current.optimistic('update-1', () => ({ count: 10 }), slowAction)
-        
+
         expect(store.getState().count).toBe(10)
-        
+
         result.current.rollbackAll()
-        
+
         // Give time for rollback to complete
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise((resolve) => setTimeout(resolve, 10))
       })
 
       expect(store.getState().count).toBe(0)
@@ -376,20 +345,16 @@ describe('React Advanced Hooks', () => {
   describe('useFields', () => {
     it('should subscribe to multiple fields', () => {
       const store = createStore({ count: 5, name: 'Alice', age: 30 })
-      
-      const { result } = renderHook(() =>
-        useFields(store, ['count', 'name'])
-      )
+
+      const { result } = renderHook(() => useFields(store, ['count', 'name']))
 
       expect(result.current).toEqual({ count: 5, name: 'Alice' })
     })
 
     it('should update when any subscribed field changes', async () => {
       const store = createStore({ count: 5, name: 'Alice', age: 30 })
-      
-      const { result } = renderHook(() =>
-        useFields(store, ['count', 'name'])
-      )
+
+      const { result } = renderHook(() => useFields(store, ['count', 'name']))
 
       await act(async () => {
         store.setState({ count: 10 })
@@ -402,10 +367,8 @@ describe('React Advanced Hooks', () => {
 
     it('should not update when non-subscribed fields change', async () => {
       const store = createStore({ count: 5, name: 'Alice', age: 30 })
-      
-      const { result } = renderHook(() =>
-        useFields(store, ['count', 'name'])
-      )
+
+      const { result } = renderHook(() => useFields(store, ['count', 'name']))
 
       const initialResult = result.current
 
@@ -419,10 +382,8 @@ describe('React Advanced Hooks', () => {
 
     it('should handle empty field array', () => {
       const store = createStore({ count: 5, name: 'Alice' })
-      
-      const { result } = renderHook(() =>
-        useFields(store, [])
-      )
+
+      const { result } = renderHook(() => useFields(store, []))
 
       expect(result.current).toEqual({})
     })
@@ -431,7 +392,7 @@ describe('React Advanced Hooks', () => {
   describe('useBatchedMutations', () => {
     it('should batch mutations', async () => {
       const store = createStore({ count: 0, value: 0 })
-      
+
       const { result } = renderHook(() => useBatchedMutations(store))
 
       await act(async () => {
@@ -447,7 +408,7 @@ describe('React Advanced Hooks', () => {
 
     it('should execute all mutations in batch', async () => {
       const store = createStore({ a: 0, b: 0, c: 0 })
-      
+
       const { result } = renderHook(() => useBatchedMutations(store))
 
       await act(async () => {

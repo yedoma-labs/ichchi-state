@@ -1,9 +1,9 @@
 import { bench, describe } from 'vitest'
-import { createStore, applyMiddleware } from './store'
-import { logger, debounce, timeTravel } from './middleware'
-import { computed } from './computed'
 import { createBatcher } from './batch-updates'
+import { computed } from './computed'
+import { debounce, logger, timeTravel } from './middleware'
 import { createSnapshots } from './snapshots'
+import { applyMiddleware, createStore } from './store'
 
 describe('Store Performance', () => {
   bench('create store', () => {
@@ -42,16 +42,16 @@ describe('Store Performance', () => {
   bench('100 subscribers, 100 updates', () => {
     const store = createStore({ count: 0 })
     const listeners = []
-    
+
     for (let i = 0; i < 100; i++) {
       listeners.push(store.subscribe(() => {}))
     }
-    
+
     for (let i = 0; i < 100; i++) {
       store.setState({ count: i })
     }
-    
-    listeners.forEach(unsub => unsub())
+
+    listeners.forEach((unsub) => unsub())
   })
 })
 
@@ -85,7 +85,7 @@ describe('Middleware Performance', () => {
       store,
       logger({ collapsed: true }),
       debounce(0),
-      timeTravel({ limit: 50 })
+      timeTravel({ limit: 50 }),
     )
     for (let i = 0; i < 1000; i++) {
       enhanced.setState({ count: i })
@@ -155,31 +155,31 @@ describe('Snapshots Performance', () => {
   bench('restore snapshots (100 times)', () => {
     const store = createStore({ count: 0 })
     const snapshots = createSnapshots(store)
-    
+
     for (let i = 0; i < 100; i++) {
       store.setState({ count: i })
       snapshots.create(`snapshot-${i}`)
     }
-    
+
     for (let i = 0; i < 100; i++) {
       snapshots.restore(`snapshot-${i}`)
     }
   })
 
   bench('snapshot diff (100 times)', () => {
-    const store = createStore({ 
-      count: 0, 
+    const store = createStore({
+      count: 0,
       data: { a: 1, b: 2, c: 3 },
-      items: [1, 2, 3, 4, 5] 
+      items: [1, 2, 3, 4, 5],
     })
     const snapshots = createSnapshots(store)
-    
+
     snapshots.create('base')
-    
+
     for (let i = 0; i < 100; i++) {
-      store.setState({ 
+      store.setState({
         count: i,
-        data: { a: i, b: i * 2, c: i * 3 }
+        data: { a: i, b: i * 2, c: i * 3 },
       })
       snapshots.diff('base')
     }
@@ -192,9 +192,9 @@ describe('Large State Performance', () => {
     for (let i = 0; i < 1000; i++) {
       initialState[`prop${i}`] = i
     }
-    
+
     const store = createStore(initialState)
-    
+
     for (let i = 0; i < 100; i++) {
       store.setState({ [`prop${i}`]: i * 2 })
     }
@@ -202,7 +202,7 @@ describe('Large State Performance', () => {
 
   bench('update large array (10000 items)', () => {
     const store = createStore({ items: Array.from({ length: 10000 }, (_, i) => i) })
-    
+
     for (let i = 0; i < 100; i++) {
       const state = store.getState()
       store.setState({ items: [...state.items, 10000 + i] })
@@ -216,14 +216,14 @@ describe('Large State Performance', () => {
           level3: {
             level4: {
               level5: {
-                value: 0
-              }
-            }
-          }
-        }
-      }
+                value: 0,
+              },
+            },
+          },
+        },
+      },
     })
-    
+
     for (let i = 0; i < 100; i++) {
       const state = store.getState()
       store.setState({
@@ -236,12 +236,12 @@ describe('Large State Performance', () => {
               level4: {
                 ...state.level1.level2.level3.level4,
                 level5: {
-                  value: i
-                }
-              }
-            }
-          }
-        }
+                  value: i,
+                },
+              },
+            },
+          },
+        },
       })
     }
   })
@@ -261,7 +261,7 @@ describe('Realistic Application Patterns', () => {
     for (let i = 0; i < 50; i++) {
       const state = store.getState()
       store.setState({
-        todos: [...state.todos, { id: i, text: `Todo ${i}`, completed: false }]
+        todos: [...state.todos, { id: i, text: `Todo ${i}`, completed: false }],
       })
     }
 
@@ -269,9 +269,9 @@ describe('Realistic Application Patterns', () => {
     for (let i = 0; i < 25; i++) {
       const state = store.getState()
       store.setState({
-        todos: state.todos.map(todo =>
-          todo.id === i ? { ...todo, completed: !todo.completed } : todo
-        )
+        todos: state.todos.map((todo) =>
+          todo.id === i ? { ...todo, completed: !todo.completed } : todo,
+        ),
       })
     }
 
@@ -279,7 +279,7 @@ describe('Realistic Application Patterns', () => {
     for (let i = 0; i < 25; i++) {
       const state = store.getState()
       store.setState({
-        todos: state.todos.filter(todo => todo.id !== i)
+        todos: state.todos.filter((todo) => todo.id !== i),
       })
     }
   })
@@ -305,38 +305,38 @@ describe('Realistic Application Patterns', () => {
       preferences: {
         theme: 'dark',
         notifications: true,
-        language: 'en'
+        language: 'en',
       },
       friends: [],
-      posts: []
+      posts: [],
     })
 
     for (let i = 0; i < 100; i++) {
       const state = store.getState()
-      
+
       // Update various parts
       if (i % 10 === 0) {
         store.setState({ name: `User ${i}` })
       }
-      
+
       if (i % 5 === 0) {
         store.setState({
           preferences: {
             ...state.preferences,
-            theme: i % 2 === 0 ? 'dark' : 'light'
-          }
+            theme: i % 2 === 0 ? 'dark' : 'light',
+          },
         })
       }
-      
+
       if (i % 3 === 0) {
         store.setState({
-          friends: [...state.friends, `friend-${i}`]
+          friends: [...state.friends, `friend-${i}`],
         })
       }
-      
+
       if (i % 2 === 0) {
         store.setState({
-          posts: [...state.posts, { id: i, content: `Post ${i}`, likes: 0 }]
+          posts: [...state.posts, { id: i, content: `Post ${i}`, likes: 0 }],
         })
       }
     }

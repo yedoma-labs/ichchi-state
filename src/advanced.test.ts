@@ -1,18 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createStore } from './store'
+import { describe, expect, it, vi } from 'vitest'
+import { asyncState, createAsync } from './async-state'
+import { createBatcher } from './batch-updates'
 import { computed } from './computed'
 import { subscribeToField } from './field-subscriptions'
-import { createOptimisticUpdates } from './optimistic-updates'
-import { createAsync, asyncState } from './async-state'
-import { createBatcher } from './batch-updates'
-import { createSnapshots } from './snapshots'
 import { createHistoryBranching } from './history-branching'
+import { createOptimisticUpdates } from './optimistic-updates'
+import { createSnapshots } from './snapshots'
+import { createStore } from './store'
 
 describe('Advanced Features', () => {
   describe('Computed values', () => {
     it('should compute derived values', () => {
       const store = createStore({ count: 0, multiplier: 2 })
-      const doubled = computed(store, state => state.count * state.multiplier)
+      const doubled = computed(store, (state) => state.count * state.multiplier)
 
       expect(doubled.get()).toBe(0)
 
@@ -25,8 +25,8 @@ describe('Advanced Features', () => {
 
     it('should notify subscribers when computed value changes', () => {
       const store = createStore({ count: 0 })
-      const doubled = computed(store, state => state.count * 2)
-      
+      const doubled = computed(store, (state) => state.count * 2)
+
       const listener = vi.fn()
       doubled.subscribe(listener)
 
@@ -36,8 +36,8 @@ describe('Advanced Features', () => {
 
     it('should not notify if value does not change', () => {
       const store = createStore({ count: 0, other: 'value' })
-      const doubled = computed(store, state => state.count * 2)
-      
+      const doubled = computed(store, (state) => state.count * 2)
+
       const listener = vi.fn()
       doubled.subscribe(listener)
 
@@ -47,12 +47,8 @@ describe('Advanced Features', () => {
 
     it('should use custom equals function', () => {
       const store = createStore({ arr: [1, 2, 3] })
-      const computed1 = computed(
-        store,
-        state => state.arr.length,
-        { equals: (a, b) => a === b }
-      )
-      
+      const computed1 = computed(store, (state) => state.arr.length, { equals: (a, b) => a === b })
+
       const listener = vi.fn()
       computed1.subscribe(listener)
 
@@ -67,11 +63,11 @@ describe('Advanced Features', () => {
 
     it('should unsubscribe from store when last listener is removed', () => {
       const store = createStore({ count: 0 })
-      const doubled = computed(store, state => state.count * 2)
-      
+      const doubled = computed(store, (state) => state.count * 2)
+
       const listener1 = vi.fn()
       const listener2 = vi.fn()
-      
+
       const unsub1 = doubled.subscribe(listener1)
       const unsub2 = doubled.subscribe(listener2)
 
@@ -89,7 +85,7 @@ describe('Advanced Features', () => {
 
       listener2.mockClear()
       unsub2()
-      
+
       // After last unsubscribe, computed should cleanup
       store.setState({ count: 15 })
       expect(listener1).not.toHaveBeenCalled()
@@ -98,9 +94,9 @@ describe('Advanced Features', () => {
 
     it('should handle multiple computed values', () => {
       const store = createStore({ count: 0, multiplier: 2 })
-      const doubled = computed(store, state => state.count * 2)
-      const tripled = computed(store, state => state.count * 3)
-      const withMultiplier = computed(store, state => state.count * state.multiplier)
+      const doubled = computed(store, (state) => state.count * 2)
+      const tripled = computed(store, (state) => state.count * 3)
+      const withMultiplier = computed(store, (state) => state.count * state.multiplier)
 
       expect(doubled.get()).toBe(0)
       expect(tripled.get()).toBe(0)
@@ -114,12 +110,12 @@ describe('Advanced Features', () => {
 
     it('should stop updating when all listeners are removed', () => {
       const store = createStore({ count: 0 })
-      const doubled = computed(store, state => state.count * 2)
-      
+      const doubled = computed(store, (state) => state.count * 2)
+
       const listener1 = vi.fn()
       const listener2 = vi.fn()
       const listener3 = vi.fn()
-      
+
       const unsub1 = doubled.subscribe(listener1)
       const unsub2 = doubled.subscribe(listener2)
       const unsub3 = doubled.subscribe(listener3)
@@ -132,7 +128,7 @@ describe('Advanced Features', () => {
       listener1.mockClear()
       listener2.mockClear()
       listener3.mockClear()
-      
+
       unsub1()
       unsub2()
       // Still one listener left
@@ -186,8 +182,8 @@ describe('Advanced Features', () => {
 
       const result = await optimistic.optimistic(
         'test',
-        state => ({ count: state.count + 1 }),
-        async () => 'success'
+        (state) => ({ count: state.count + 1 }),
+        async () => 'success',
       )
 
       expect(result).toBe('success')
@@ -202,10 +198,12 @@ describe('Advanced Features', () => {
       try {
         await optimistic.optimistic(
           'test',
-          state => ({ count: state.count + 1 }),
-          async () => { throw new Error('Failed') }
+          (state) => ({ count: state.count + 1 }),
+          async () => {
+            throw new Error('Failed')
+          },
         )
-      } catch (err) {
+      } catch (_err) {
         // Expected
       }
 
@@ -219,8 +217,8 @@ describe('Advanced Features', () => {
 
       const promise = optimistic.optimistic(
         'test',
-        state => ({ count: state.count + 1 }),
-        () => new Promise(resolve => setTimeout(resolve, 100))
+        (state) => ({ count: state.count + 1 }),
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
       )
 
       expect(optimistic.isPending('test')).toBe(true)
@@ -238,8 +236,8 @@ describe('Advanced Features', () => {
       // Start an optimistic update but don't await
       optimistic.optimistic(
         'update1',
-        state => ({ count: state.count + 1 }),
-        () => new Promise(resolve => setTimeout(resolve, 100))
+        (state) => ({ count: state.count + 1 }),
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
       )
 
       expect(store.getState().count).toBe(1)
@@ -266,28 +264,34 @@ describe('Advanced Features', () => {
 
       // Create multiple pending updates that won't complete
       // Each update captures rollback state at its creation time
-      optimistic.optimistic(
-        'update1',
-        () => ({ a: 1 }),
-        () => new Promise(() => {}) // Never resolves
-      ).catch(() => {})
+      optimistic
+        .optimistic(
+          'update1',
+          () => ({ a: 1 }),
+          () => new Promise(() => {}), // Never resolves
+        )
+        .catch(() => {})
 
       // At this point state is { a: 1, b: 0, c: 0 }
-      optimistic.optimistic(
-        'update2',
-        () => ({ b: 2 }),
-        () => new Promise(() => {}) // Never resolves
-      ).catch(() => {})
+      optimistic
+        .optimistic(
+          'update2',
+          () => ({ b: 2 }),
+          () => new Promise(() => {}), // Never resolves
+        )
+        .catch(() => {})
 
       // At this point state is { a: 1, b: 2, c: 0 }
-      optimistic.optimistic(
-        'update3',
-        () => ({ c: 3 }),
-        () => new Promise(() => {}) // Never resolves
-      ).catch(() => {})
+      optimistic
+        .optimistic(
+          'update3',
+          () => ({ c: 3 }),
+          () => new Promise(() => {}), // Never resolves
+        )
+        .catch(() => {})
 
       // Wait a bit for optimistic updates to be applied
-      await new Promise(resolve => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 10))
 
       expect(store.getState()).toEqual({ a: 1, b: 2, c: 3 })
       expect(optimistic.getPending()).toHaveLength(3)
@@ -310,20 +314,20 @@ describe('Advanced Features', () => {
 
       const promise1 = optimistic.optimistic(
         'update1',
-        state => ({ count: state.count + 1 }),
+        (state) => ({ count: state.count + 1 }),
         async () => {
-          await new Promise(resolve => setTimeout(resolve, 20))
+          await new Promise((resolve) => setTimeout(resolve, 20))
           return 'result1'
-        }
+        },
       )
 
       const promise2 = optimistic.optimistic(
         'update2',
-        state => ({ count: state.count + 1 }),
+        (state) => ({ count: state.count + 1 }),
         async () => {
-          await new Promise(resolve => setTimeout(resolve, 10))
+          await new Promise((resolve) => setTimeout(resolve, 10))
           return 'result2'
-        }
+        },
       )
 
       const [result1, result2] = await Promise.all([promise1, promise2])
@@ -340,13 +344,13 @@ describe('Advanced Features', () => {
       optimistic.optimistic(
         'update1',
         () => ({ count: 1 }),
-        () => new Promise(resolve => setTimeout(resolve, 100))
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
       )
 
       optimistic.optimistic(
         'update2',
         () => ({ count: 2 }),
-        () => new Promise(resolve => setTimeout(resolve, 100))
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
       )
 
       expect(optimistic.getPending()).toEqual(['update1', 'update2'])
@@ -362,7 +366,7 @@ describe('Advanced Features', () => {
       const userAsync = createAsync(store, 'user')
 
       const fetchPromise = userAsync.execute(async () => {
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise((resolve) => setTimeout(resolve, 10))
         return { name: 'Alice' }
       })
 
@@ -385,7 +389,7 @@ describe('Advanced Features', () => {
         await userAsync.execute(async () => {
           throw new Error('Failed to fetch')
         })
-      } catch (err) {
+      } catch (_err) {
         // Expected
       }
 
@@ -401,7 +405,7 @@ describe('Advanced Features', () => {
         await userAsync.execute(async () => {
           throw 'String error'
         })
-      } catch (err) {
+      } catch (_err) {
         // Expected
       }
 
@@ -412,7 +416,7 @@ describe('Advanced Features', () => {
     it('should use stale data if within staleTime', async () => {
       const store = createStore({ user: asyncState<{ name: string }>() })
       const userAsync = createAsync(store, 'user')
-      
+
       const fetchFn = vi.fn().mockResolvedValue({ name: 'Alice' })
 
       await userAsync.execute(fetchFn, { staleTime: 1000 })
@@ -426,14 +430,14 @@ describe('Advanced Features', () => {
     it('should refetch when data is stale', async () => {
       const store = createStore({ user: asyncState<{ name: string }>() })
       const userAsync = createAsync(store, 'user')
-      
+
       const fetchFn = vi.fn().mockResolvedValue({ name: 'Alice' })
 
       await userAsync.execute(fetchFn, { staleTime: 10 })
       expect(fetchFn).toHaveBeenCalledTimes(1)
 
       // Wait for data to become stale
-      await new Promise(resolve => setTimeout(resolve, 20))
+      await new Promise((resolve) => setTimeout(resolve, 20))
 
       await userAsync.execute(fetchFn, { staleTime: 10 })
       expect(fetchFn).toHaveBeenCalledTimes(2)
@@ -442,7 +446,7 @@ describe('Advanced Features', () => {
     it('should retry on failure', async () => {
       const store = createStore({ user: asyncState<{ name: string }>() })
       const userAsync = createAsync(store, 'user')
-      
+
       let attempts = 0
       const fetchFn = vi.fn().mockImplementation(async () => {
         attempts++
@@ -451,7 +455,7 @@ describe('Advanced Features', () => {
       })
 
       await userAsync.execute(fetchFn, { retry: 3, retryDelay: 10 })
-      
+
       expect(fetchFn).toHaveBeenCalledTimes(3)
       expect(store.getState().user.data).toEqual({ name: 'Alice' })
     })
@@ -459,12 +463,13 @@ describe('Advanced Features', () => {
     it('should throw after all retries fail', async () => {
       const store = createStore({ user: asyncState<{ name: string }>() })
       const userAsync = createAsync(store, 'user')
-      
+
       const fetchFn = vi.fn().mockRejectedValue(new Error('Always fails'))
 
-      await expect(userAsync.execute(fetchFn, { retry: 2, retryDelay: 10 }))
-        .rejects.toThrow('Always fails')
-      
+      await expect(userAsync.execute(fetchFn, { retry: 2, retryDelay: 10 })).rejects.toThrow(
+        'Always fails',
+      )
+
       expect(fetchFn).toHaveBeenCalledTimes(3) // Initial + 2 retries
       expect(store.getState().user.error?.message).toBe('Always fails')
     })
@@ -478,10 +483,13 @@ describe('Advanced Features', () => {
       expect(store.getState().user.data).toEqual({ name: 'Alice' })
 
       // Second fetch (data should be preserved during loading)
-      const promise = userAsync.execute(async () => {
-        await new Promise(resolve => setTimeout(resolve, 10))
-        return { name: 'Bob' }
-      }, { staleTime: 0 })
+      const promise = userAsync.execute(
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10))
+          return { name: 'Bob' }
+        },
+        { staleTime: 0 },
+      )
 
       // Check that old data is still there during loading
       expect(store.getState().user.loading).toBe(true)
@@ -494,7 +502,7 @@ describe('Advanced Features', () => {
     it('should invalidate cached data', async () => {
       const store = createStore({ user: asyncState<{ name: string }>() })
       const userAsync = createAsync(store, 'user')
-      
+
       const fetchFn = vi.fn().mockResolvedValue({ name: 'Alice' })
 
       await userAsync.execute(fetchFn, { staleTime: 10000 })
@@ -516,12 +524,12 @@ describe('Advanced Features', () => {
       expect(store.getState().user.data).toEqual({ name: 'Alice' })
 
       userAsync.reset()
-      
+
       expect(store.getState().user).toEqual({
         data: null,
         loading: false,
         error: null,
-        timestamp: null
+        timestamp: null,
       })
     })
 
@@ -530,7 +538,7 @@ describe('Advanced Features', () => {
       const userAsync = createAsync(store, 'user')
 
       userAsync.mutate(() => ({ name: 'Bob' }))
-      
+
       expect(store.getState().user.data).toEqual({ name: 'Bob' })
       expect(store.getState().user.loading).toBe(false)
       expect(store.getState().user.error).toBe(null)
@@ -545,24 +553,24 @@ describe('Advanced Features', () => {
         if (!data) return { name: 'Default' }
         return { name: data.name.toUpperCase() }
       })
-      
+
       expect(store.getState().user.data).toEqual({ name: 'Default' })
     })
 
     it('should create initial async state', () => {
       const initial = asyncState<{ name: string }>()
-      
+
       expect(initial).toEqual({
         data: null,
         loading: false,
         error: null,
-        timestamp: null
+        timestamp: null,
       })
     })
 
     it('should create async state with initial data', () => {
       const initial = asyncState<{ name: string }>({ name: 'Initial' })
-      
+
       expect(initial.data).toEqual({ name: 'Initial' })
     })
   })
@@ -571,7 +579,7 @@ describe('Advanced Features', () => {
     it('should batch multiple updates', () => {
       const store = createStore({ a: 0, b: 0, c: 0 })
       const batcher = createBatcher(store)
-      
+
       const listener = vi.fn()
       store.subscribe(listener)
 
@@ -589,7 +597,7 @@ describe('Advanced Features', () => {
     it('should handle function updates in batch', () => {
       const store = createStore({ count: 0 })
       const batcher = createBatcher(store)
-      
+
       const listener = vi.fn()
       store.subscribe(listener)
 
@@ -608,7 +616,7 @@ describe('Advanced Features', () => {
     it('should apply updates immediately when not batching', () => {
       const store = createStore({ count: 0 })
       const batcher = createBatcher(store)
-      
+
       const listener = vi.fn()
       store.subscribe(listener)
 
@@ -624,7 +632,7 @@ describe('Advanced Features', () => {
     it('should handle nested batch calls', () => {
       const store = createStore({ a: 0, b: 0, c: 0 })
       const batcher = createBatcher(store)
-      
+
       const listener = vi.fn()
       store.subscribe(listener)
 
@@ -644,7 +652,7 @@ describe('Advanced Features', () => {
     it('should use startBatch and endBatch manually', () => {
       const store = createStore({ count: 0 })
       const batcher = createBatcher(store)
-      
+
       const listener = vi.fn()
       store.subscribe(listener)
 
@@ -661,17 +669,17 @@ describe('Advanced Features', () => {
     it('should flush manually', () => {
       const store = createStore({ count: 0 })
       const batcher = createBatcher(store)
-      
+
       const listener = vi.fn()
       store.subscribe(listener)
 
       batcher.startBatch()
       batcher.setState({ count: 1 })
       batcher.setState({ count: 2 })
-      
+
       // Manually flush before endBatch
       batcher.flush()
-      
+
       expect(listener).toHaveBeenCalledTimes(1)
       expect(store.getState().count).toBe(2)
 
@@ -681,7 +689,7 @@ describe('Advanced Features', () => {
     it('should handle empty batch', () => {
       const store = createStore({ count: 0 })
       const batcher = createBatcher(store)
-      
+
       const listener = vi.fn()
       store.subscribe(listener)
 
@@ -708,7 +716,7 @@ describe('Advanced Features', () => {
     it('should flush on endBatch even if error occurs', () => {
       const store = createStore({ count: 0 })
       const batcher = createBatcher(store)
-      
+
       const listener = vi.fn()
       store.subscribe(listener)
 
@@ -717,7 +725,7 @@ describe('Advanced Features', () => {
           batcher.setState({ count: 1 })
           throw new Error('Test error')
         })
-      } catch (err) {
+      } catch (_err) {
         // Expected
       }
 
@@ -783,7 +791,7 @@ describe('Advanced Features', () => {
 
       const list = snapshots.list()
       expect(list).toHaveLength(3)
-      expect(list.map(s => s.id)).toEqual(['snap1', 'snap2', 'snap3'])
+      expect(list.map((s) => s.id)).toEqual(['snap1', 'snap2', 'snap3'])
     })
 
     it('should delete snapshots', () => {
@@ -830,7 +838,7 @@ describe('Advanced Features', () => {
       const diff = snapshots.diff('before')
       expect(diff?.changed).toEqual({
         count: { from: 0, to: 5 },
-        name: { from: 'test', to: 'updated' }
+        name: { from: 'test', to: 'updated' },
       })
     })
 
@@ -844,7 +852,7 @@ describe('Advanced Features', () => {
 
       const diff = snapshots.diff('snap1', 'snap2')
       expect(diff?.changed).toEqual({
-        count: { from: 0, to: 5 }
+        count: { from: 0, to: 5 },
       })
     })
 
@@ -876,7 +884,7 @@ describe('Advanced Features', () => {
       const snapshots = createSnapshots(store)
 
       snapshots.create('before')
-      
+
       // Store merges state, so we need to use a new store to simulate removed fields
       const store2 = createStore<any>({ count: 0 })
       const snapshots2 = createSnapshots(store2)
@@ -884,18 +892,18 @@ describe('Advanced Features', () => {
 
       const snapshot1 = snapshots.get('before')
       const snapshot2 = snapshots2.get('after')
-      
+
       // Manually create diff by comparing two snapshots with different keys
       const stateA = snapshot1!.state
       const stateB = snapshot2!.state
-      
+
       const removed: Record<string, any> = {}
-      Object.keys(stateA).forEach(key => {
+      Object.keys(stateA).forEach((key) => {
         if (!(key in stateB)) {
           removed[key] = stateA[key]
         }
       })
-      
+
       expect(removed).toEqual({ temp: 'value' })
     })
 
@@ -923,8 +931,9 @@ describe('Advanced Features', () => {
 
       // Error comes from safeJSONParse now
       expect(errorSpy).toHaveBeenCalled()
-      const hasJSONError = (errorSpy.mock.calls as any).some((call: any) =>
-        call[0]?.includes('JSON.parse failed') || call[0]?.includes('Invalid snapshot import')
+      const hasJSONError = (errorSpy.mock.calls as any).some(
+        (call: any) =>
+          call[0]?.includes('JSON.parse failed') || call[0]?.includes('Invalid snapshot import'),
       )
       expect(hasJSONError).toBe(true)
 
@@ -952,18 +961,18 @@ describe('Advanced Features', () => {
           id: 'snap1',
           state: { count: 10 },
           timestamp: Date.now(),
-          label: 'First'
+          label: 'First',
         },
         {
           id: 'snap2',
           state: { count: 20 },
           timestamp: Date.now() + 1000,
-          label: 'Second'
-        }
+          label: 'Second',
+        },
       ])
 
       snapshots.import(validData)
-      
+
       expect(snapshots.list()).toHaveLength(2)
       expect(snapshots.get('snap1')?.state.count).toBe(10)
       expect(snapshots.get('snap2')?.state.count).toBe(20)
@@ -976,7 +985,7 @@ describe('Advanced Features', () => {
       const history = createHistoryBranching(store)
 
       store.setState({ value: 1 })
-      
+
       // Creating a branch just creates a pointer, doesn't switch to it
       history.createBranch('experiment')
       history.checkout('experiment')

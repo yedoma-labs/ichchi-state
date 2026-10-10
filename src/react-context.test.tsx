@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import React from 'react'
 import { screen } from '@testing-library/react'
-import { renderWithProviders, userEvent } from './test-utils'
-import { createStore } from './store'
+import React from 'react'
+import { describe, expect, it } from 'vitest'
 import { createStoreContext } from './react'
+import { createStore } from './store'
+import { renderWithProviders, userEvent } from './test-utils'
 
 describe('React Context', () => {
   describe('createStoreContext', () => {
@@ -19,7 +19,7 @@ describe('React Context', () => {
       renderWithProviders(
         <Provider>
           <TestComponent />
-        </Provider>
+        </Provider>,
       )
 
       expect(screen.getByTestId('count')).toHaveTextContent('0')
@@ -34,9 +34,7 @@ describe('React Context', () => {
         return (
           <div>
             <div data-testid="count">{state.count}</div>
-            <button onClick={() => store.setState({ count: state.count + 1 })}>
-              Increment
-            </button>
+            <button onClick={() => store.setState({ count: state.count + 1 })}>Increment</button>
           </div>
         )
       }
@@ -44,7 +42,7 @@ describe('React Context', () => {
       renderWithProviders(
         <Provider>
           <TestComponent />
-        </Provider>
+        </Provider>,
       )
 
       expect(screen.getByTestId('count')).toHaveTextContent('0')
@@ -60,14 +58,14 @@ describe('React Context', () => {
       const { Provider, useSelector } = createStoreContext(store)
 
       function TestComponent() {
-        const count = useSelector(state => state.count)
+        const count = useSelector((state) => state.count)
         return <div data-testid="count">{count}</div>
       }
 
       renderWithProviders(
         <Provider>
           <TestComponent />
-        </Provider>
+        </Provider>,
       )
 
       expect(screen.getByTestId('count')).toHaveTextContent('0')
@@ -78,13 +76,11 @@ describe('React Context', () => {
       const { Provider, useSelector } = createStoreContext(store)
 
       function TestComponent() {
-        const count = useSelector(state => state.count)
+        const count = useSelector((state) => state.count)
         return (
           <div>
             <div data-testid="count">{count}</div>
-            <button onClick={() => store.setState({ count: count + 1 })}>
-              Increment
-            </button>
+            <button onClick={() => store.setState({ count: count + 1 })}>Increment</button>
           </div>
         )
       }
@@ -92,7 +88,7 @@ describe('React Context', () => {
       renderWithProviders(
         <Provider>
           <TestComponent />
-        </Provider>
+        </Provider>,
       )
 
       expect(screen.getByTestId('count')).toHaveTextContent('0')
@@ -112,8 +108,8 @@ describe('React Context', () => {
       function TestComponent() {
         renderCount++
         const items = useSelector(
-          state => state.items,
-          (a, b) => a.length === b.length
+          (state) => state.items,
+          (a, b) => a.length === b.length,
         )
         return <div data-testid="items">{items.join(',')}</div>
       }
@@ -121,7 +117,7 @@ describe('React Context', () => {
       renderWithProviders(
         <Provider>
           <TestComponent />
-        </Provider>
+        </Provider>,
       )
 
       expect(screen.getByTestId('items')).toHaveTextContent('1,2,3')
@@ -129,9 +125,9 @@ describe('React Context', () => {
 
       // Same length array - should not re-render
       store.setState({ items: [4, 5, 6] })
-      
-      await new Promise(resolve => setTimeout(resolve, 50))
-      
+
+      await new Promise((resolve) => setTimeout(resolve, 50))
+
       // Might still re-render once, but shouldn't continue
       expect(renderCount).toBeLessThanOrEqual(initialRenderCount + 1)
     })
@@ -156,7 +152,7 @@ describe('React Context', () => {
       const { useSelector } = createStoreContext(store)
 
       function TestComponent() {
-        useSelector(state => state.count)
+        useSelector((state) => state.count)
         return <div>Test</div>
       }
 
@@ -184,7 +180,7 @@ describe('React Context', () => {
         <Provider>
           <Counter />
           <Name />
-        </Provider>
+        </Provider>,
       )
 
       expect(screen.getByTestId('counter')).toHaveTextContent('0')
@@ -215,7 +211,7 @@ describe('React Context', () => {
           <Context2.Provider>
             <TestComponent />
           </Context2.Provider>
-        </Context1.Provider>
+        </Context1.Provider>,
       )
 
       expect(screen.getByTestId('value1')).toHaveTextContent('store1')
@@ -237,12 +233,8 @@ describe('React Context', () => {
           <div>
             <div data-testid="count1">{state1.count}</div>
             <div data-testid="count2">{state2.count}</div>
-            <button onClick={() => store1.setState({ count: state1.count + 1 })}>
-              Inc 1
-            </button>
-            <button onClick={() => store2.setState({ count: state2.count + 1 })}>
-              Inc 2
-            </button>
+            <button onClick={() => store1.setState({ count: state1.count + 1 })}>Inc 1</button>
+            <button onClick={() => store2.setState({ count: state2.count + 1 })}>Inc 2</button>
           </div>
         )
       }
@@ -252,7 +244,7 @@ describe('React Context', () => {
           <Context2.Provider>
             <TestComponent />
           </Context2.Provider>
-        </Context1.Provider>
+        </Context1.Provider>,
       )
 
       expect(screen.getByTestId('count1')).toHaveTextContent('0')

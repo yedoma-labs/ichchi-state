@@ -26,6 +26,7 @@ export function securityError(message: string, error?: unknown): void {
  * Safe JSON.parse that prevents prototype pollution
  * CWE-1321: Improperly Controlled Modification of Object Prototype Attributes
  */
+// biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
 export function safeJSONParse<T = any>(json: string): T | null {
   try {
     return JSON.parse(json, (key, value) => {
@@ -54,6 +55,7 @@ export function sanitizeObject<T extends object>(obj: T): T {
 
   for (const key of dangerousKeys) {
     if (key in sanitized) {
+      // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
       delete (sanitized as any)[key]
       securityWarn(`[Security] Removed dangerous key: ${key}`)
     }
@@ -87,6 +89,7 @@ export function validatePath(path: string): boolean {
 /**
  * Estimate memory size of an object in bytes (rough approximation)
  */
+// biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
 export function estimateSize(obj: any): number {
   const str = JSON.stringify(obj)
   // UTF-16 uses 2 bytes per character
@@ -141,16 +144,16 @@ export class RateLimiter {
  */
 export function checkStorageQuota(
   storage: Storage,
-  key: string,
+  _key: string,
   value: string,
-  maxSizeKB: number = 500
+  maxSizeKB: number = 500,
 ): { ok: boolean; error?: string } {
   // Check value size
   const sizeKB = (value.length * 2) / 1024
   if (sizeKB > maxSizeKB) {
     return {
       ok: false,
-      error: `Value size (${sizeKB.toFixed(1)}KB) exceeds limit (${maxSizeKB}KB)`
+      error: `Value size (${sizeKB.toFixed(1)}KB) exceeds limit (${maxSizeKB}KB)`,
     }
   }
 
@@ -164,7 +167,7 @@ export function checkStorageQuota(
     if (e instanceof DOMException && e.name === 'QuotaExceededError') {
       return {
         ok: false,
-        error: 'Storage quota exceeded'
+        error: 'Storage quota exceeded',
       }
     }
   }
@@ -180,7 +183,7 @@ export function deepClone<T>(obj: T): T {
   if (typeof structuredClone !== 'undefined') {
     try {
       return structuredClone(obj)
-    } catch (e) {
+    } catch (_e) {
       // Fall back to JSON method if structuredClone fails
       securityWarn('[Security] structuredClone failed, using JSON fallback')
     }
@@ -199,11 +202,13 @@ export function deepClone<T>(obj: T): T {
  */
 export interface SnapshotStructure {
   id: string
+  // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
   state: any
   timestamp: number
   label?: string
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
 export function validateSnapshot(snapshot: any): snapshot is SnapshotStructure {
   if (!snapshot || typeof snapshot !== 'object') {
     return false

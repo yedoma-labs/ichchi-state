@@ -1,5 +1,11 @@
+import {
+  safeJSONParse,
+  sanitizeObject,
+  securityError,
+  securityWarn,
+  validateSnapshot,
+} from './security'
 import type { Store } from './types'
-import { safeJSONParse, validateSnapshot, sanitizeObject, securityWarn, securityError } from './security'
 
 export interface Snapshot<T> {
   id: string
@@ -9,8 +15,11 @@ export interface Snapshot<T> {
 }
 
 export interface StateDiff {
+  // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
   added: Record<string, any>
+  // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
   removed: Record<string, any>
+  // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
   changed: Record<string, { from: any; to: any }>
 }
 
@@ -29,7 +38,7 @@ export function createSnapshots<T extends object>(store: Store<T>) {
         id,
         state: { ...store.getState() },
         timestamp: Date.now(),
-        label
+        label,
       }
 
       snapshots.set(id, snapshot)
@@ -43,6 +52,7 @@ export function createSnapshots<T extends object>(store: Store<T>) {
       const snapshot = snapshots.get(id)
       if (!snapshot) return false
 
+      // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
       store.setState(snapshot.state as any, `RESTORE_SNAPSHOT_${id}`)
       return true
     },
@@ -90,7 +100,7 @@ export function createSnapshots<T extends object>(store: Store<T>) {
       const diff: StateDiff = {
         added: {},
         removed: {},
-        changed: {}
+        changed: {},
       }
 
       // SECURITY: Check key count to prevent DoS
@@ -99,21 +109,21 @@ export function createSnapshots<T extends object>(store: Store<T>) {
         securityError(`[Security] State has too many keys (${keysBCount}), max: ${maxKeys}`)
         return null
       }
-      
+
       // Find added and changed
-      Object.keys(stateB).forEach(key => {
+      Object.keys(stateB).forEach((key) => {
         if (!(key in stateA)) {
           diff.added[key] = stateB[key as keyof T]
         } else if (stateA[key as keyof T] !== stateB[key as keyof T]) {
           diff.changed[key] = {
             from: stateA[key as keyof T],
-            to: stateB[key as keyof T]
+            to: stateB[key as keyof T],
           }
         }
       })
 
       // Find removed
-      Object.keys(stateA).forEach(key => {
+      Object.keys(stateA).forEach((key) => {
         if (!(key in stateB)) {
           diff.removed[key] = stateA[key as keyof T]
         }
@@ -141,24 +151,24 @@ export function createSnapshots<T extends object>(store: Store<T>) {
           securityError('[Security] Invalid snapshot import: not an array')
           return
         }
-        
+
         // SECURITY: Validate each snapshot structure
-        const imported = parsed.filter(snapshot => {
+        const imported = parsed.filter((snapshot) => {
           if (!validateSnapshot(snapshot)) {
             securityWarn(`[Security] Skipping invalid snapshot: ${snapshot?.id}`)
             return false
           }
           return true
         }) as Snapshot<T>[]
-        
+
         // SECURITY: Limit number of imported snapshots
         const MAX_IMPORT = 100
         if (imported.length > MAX_IMPORT) {
           securityError(`[Security] Too many snapshots (${imported.length}), max: ${MAX_IMPORT}`)
           return
         }
-        
-        imported.forEach(snapshot => {
+
+        imported.forEach((snapshot) => {
           // SECURITY: Sanitize state object
           snapshot.state = sanitizeObject(snapshot.state)
           snapshots.set(snapshot.id, snapshot)
@@ -166,6 +176,6 @@ export function createSnapshots<T extends object>(store: Store<T>) {
       } catch (err) {
         console.error('Failed to import snapshots:', err)
       }
-    }
+    },
   }
 }

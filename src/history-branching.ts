@@ -1,5 +1,5 @@
-import type { Store } from './types'
 import { estimateSize, securityWarn } from './security'
+import type { Store } from './types'
 
 interface HistoryNode<T> {
   id: string
@@ -22,10 +22,10 @@ interface Branch {
  */
 export function createHistoryBranching<T extends object>(
   store: Store<T>,
-  options: { 
+  options: {
     maxNodes?: number
     maxMemoryMB?: number // SECURITY: Memory budget limit
-  } = {}
+  } = {},
 ) {
   const { maxNodes = 100, maxMemoryMB = 20 } = options
   const maxMemoryBytes = maxMemoryMB * 1024 * 1024
@@ -33,7 +33,7 @@ export function createHistoryBranching<T extends object>(
 
   const nodes = new Map<string, HistoryNode<T>>()
   const branches = new Map<string, Branch>()
-  
+
   let currentNode: string
   let currentBranch = 'main'
   let isNavigating = false
@@ -45,7 +45,7 @@ export function createHistoryBranching<T extends object>(
     action: 'INIT',
     timestamp: Date.now(),
     parent: null,
-    children: []
+    children: [],
   }
   nodes.set('root', initNode)
   currentNode = 'root'
@@ -55,7 +55,7 @@ export function createHistoryBranching<T extends object>(
   const unsubscribe = store.subscribe((state, _prevState) => {
     // Don't record history during navigation
     if (isNavigating) return
-    
+
     // Get action name from last setState call (simplified)
     const action = 'UPDATE'
     addNode(state, action)
@@ -65,23 +65,23 @@ export function createHistoryBranching<T extends object>(
     const id = crypto.randomUUID()
     const stateCopy = { ...state }
     const stateSize = estimateSize(stateCopy)
-    
+
     // SECURITY: Check memory budget before adding (CWE-770)
     if (totalMemoryBytes + stateSize > maxMemoryBytes) {
       securityWarn(
         `[Security] History branching memory budget (${maxMemoryMB}MB) exceeded. ` +
-        'Pruning old nodes.'
+          'Pruning old nodes.',
       )
       pruneOldestBranch()
     }
-    
+
     const node: HistoryNode<T> = {
       id,
       state: stateCopy,
       action,
       timestamp: Date.now(),
       parent: currentNode,
-      children: []
+      children: [],
     }
 
     // Add to parent's children
@@ -110,22 +110,21 @@ export function createHistoryBranching<T extends object>(
 
   function pruneOldestBranch(): void {
     // Find and remove nodes from oldest branches
-    const sortedNodes = Array.from(nodes.values())
-      .sort((a, b) => a.timestamp - b.timestamp)
-    
+    const sortedNodes = Array.from(nodes.values()).sort((a, b) => a.timestamp - b.timestamp)
+
     const toRemove = sortedNodes.slice(0, Math.max(10, Math.floor(maxNodes * 0.2)))
-    toRemove.forEach(node => {
+    toRemove.forEach((node) => {
       if (node.parent) {
         const parent = nodes.get(node.parent)
         if (parent) {
-          parent.children = parent.children.filter(id => id !== node.id)
+          parent.children = parent.children.filter((id) => id !== node.id)
         }
       }
-      
+
       // SECURITY: Update memory counter
       const nodeSize = estimateSize(node.state)
       totalMemoryBytes -= nodeSize
-      
+
       nodes.delete(node.id)
     })
   }
@@ -142,7 +141,7 @@ export function createHistoryBranching<T extends object>(
       branches.set(name, {
         id: crypto.randomUUID(),
         name,
-        head: currentNode
+        head: currentNode,
       })
     },
 
@@ -158,11 +157,12 @@ export function createHistoryBranching<T extends object>(
 
       currentBranch = branchName
       currentNode = branch.head
-      
+
       isNavigating = true
+      // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
       store.setState(node.state as any, `CHECKOUT_${branchName}`)
       isNavigating = false
-      
+
       return true
     },
 
@@ -174,11 +174,12 @@ export function createHistoryBranching<T extends object>(
       if (!node) return false
 
       currentNode = nodeId
-      
+
       isNavigating = true
+      // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
       store.setState(node.state as any, `GOTO_${nodeId}`)
       isNavigating = false
-      
+
       return true
     },
 
@@ -245,6 +246,7 @@ export function createHistoryBranching<T extends object>(
       if (!branchNode) return false
 
       // Simple merge: just take the other branch's state (creates new node)
+      // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
       store.setState(branchNode.state as any, `MERGE_${branchName}`)
       return true
     },
@@ -274,7 +276,7 @@ export function createHistoryBranching<T extends object>(
         const isCurrent = nodeId === currentNode
         const marker = isCurrent ? '●' : '○'
         const label = `${marker} ${node.action} (${new Date(node.timestamp).toLocaleTimeString()})`
-        
+
         lines.push(prefix + (isLast ? '└─ ' : '├─ ') + label)
 
         const children = node.children
@@ -296,6 +298,6 @@ export function createHistoryBranching<T extends object>(
       unsubscribe()
       nodes.clear()
       branches.clear()
-    }
+    },
   }
 }

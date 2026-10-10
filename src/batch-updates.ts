@@ -1,5 +1,5 @@
-import type { Store, SetStateFn } from './types'
 import { securityWarn } from './security'
+import type { SetStateFn, Store } from './types'
 
 /**
  * Batch multiple state updates into a single update
@@ -9,7 +9,7 @@ export function createBatcher<T extends object>(
   store: Store<T>,
   options: {
     maxBatchSize?: number // SECURITY: Limit batch queue size
-  } = {}
+  } = {},
 ) {
   const { maxBatchSize = 100 } = options
   let batchedUpdates: Array<Partial<T> | ((state: T) => Partial<T>)> = []
@@ -24,10 +24,14 @@ export function createBatcher<T extends object>(
     batchTimeout = null
 
     // Merge all updates into one
-    const finalUpdate = updates.reduce((acc, update) => {
-      const partial = typeof update === 'function' ? update(store.getState()) : update
-      return { ...acc, ...partial }
-    }, {} as Partial<T>)
+    const finalUpdate = updates.reduce(
+      (acc, update) => {
+        const partial = typeof update === 'function' ? update(store.getState()) : update
+        // biome-ignore lint/performance/noAccumulatingSpread: bounded number of entries, readability preferred
+        return { ...acc, ...partial }
+      },
+      {} as Partial<T>,
+    )
 
     store.setState(finalUpdate, 'BATCH_UPDATE')
   }
@@ -42,12 +46,12 @@ export function createBatcher<T extends object>(
         store.setState(partial, actionName)
         return
       }
-      
+
       // SECURITY: Enforce max batch size (CWE-770)
       if (batchedUpdates.length >= maxBatchSize) {
         securityWarn(
           `[Security] Batch queue size (${maxBatchSize}) exceeded. ` +
-          'Flushing early to prevent DoS.'
+            'Flushing early to prevent DoS.',
         )
         flush()
       }
@@ -93,6 +97,6 @@ export function createBatcher<T extends object>(
     /**
      * Manually flush pending updates
      */
-    flush
+    flush,
   }
 }

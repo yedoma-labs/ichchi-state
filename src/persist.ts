@@ -1,5 +1,5 @@
+import { checkStorageQuota, safeJSONParse, sanitizeObject } from './security'
 import type { PersistConfig } from './types'
-import { safeJSONParse, sanitizeObject, checkStorageQuota } from './security'
 
 export function createPersist<T>(config: PersistConfig<T>) {
   const { key, storage = localStorage, version = 1, migrate, partialize } = config
@@ -10,6 +10,7 @@ export function createPersist<T>(config: PersistConfig<T>) {
       if (!item) return null
 
       // SECURITY: Use safe JSON parse to prevent prototype pollution (CWE-1321)
+      // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
       const parsed = safeJSONParse<{ state: any; version: number }>(item)
       if (!parsed) return null
 
@@ -34,14 +35,14 @@ export function createPersist<T>(config: PersistConfig<T>) {
     try {
       const stateToSave = partialize ? partialize(state) : state
       const item = JSON.stringify({ state: stateToSave, version })
-      
+
       // SECURITY: Check storage quota before write (CWE-400)
       const quotaCheck = checkStorageQuota(storage, key, item)
       if (!quotaCheck.ok) {
         console.error('[bylyt/state] Storage quota check failed:', quotaCheck.error)
         return
       }
-      
+
       storage.setItem(key, item)
     } catch (error) {
       console.error('[bylyt/state] Failed to persist state:', error)

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
-import { createStore } from './store'
+import { describe, expect, it } from 'vitest'
 import { createHistoryBranching } from './history-branching'
+import { createStore } from './store'
 
 describe('History Branching', () => {
   describe('Basic Operations', () => {
@@ -94,7 +94,7 @@ describe('History Branching', () => {
       history.createBranch('feature')
 
       const branches = history.getBranches()
-      expect(branches.map(b => b.name)).toContain('feature')
+      expect(branches.map((b) => b.name)).toContain('feature')
     })
 
     it('should checkout existing branch', () => {
@@ -102,10 +102,10 @@ describe('History Branching', () => {
       const history = createHistoryBranching(store)
 
       store.setState({ value: 1 })
-      
+
       history.createBranch('feature')
       history.checkout('feature')
-      
+
       store.setState({ value: 2 })
 
       history.checkout('main')
@@ -128,14 +128,14 @@ describe('History Branching', () => {
       const history = createHistoryBranching(store)
 
       history.createBranch('temp')
-      
+
       let branches = history.getBranches()
-      expect(branches.map(b => b.name)).toContain('temp')
+      expect(branches.map((b) => b.name)).toContain('temp')
 
       history.deleteBranch('temp')
 
       branches = history.getBranches()
-      expect(branches.map(b => b.name)).not.toContain('temp')
+      expect(branches.map((b) => b.name)).not.toContain('temp')
     })
 
     it('should not delete current branch', () => {
@@ -156,7 +156,7 @@ describe('History Branching', () => {
 
       const branches = history.getBranches()
       expect(branches.length).toBe(4) // main + 3 created
-      expect(branches.map(b => b.name)).toEqual(['main', 'feature1', 'feature2', 'hotfix'])
+      expect(branches.map((b) => b.name)).toEqual(['main', 'feature1', 'feature2', 'hotfix'])
     })
   })
 
@@ -166,7 +166,7 @@ describe('History Branching', () => {
       const history = createHistoryBranching(store)
 
       store.setState({ value: 1 })
-      
+
       // Create diverging history
       history.createBranch('branch1')
       history.checkout('branch1')
@@ -174,7 +174,7 @@ describe('History Branching', () => {
 
       history.checkout('main')
       history.back() // Go to value: 0
-      
+
       history.createBranch('branch2')
       history.checkout('branch2')
       store.setState({ value: 3 })
@@ -224,7 +224,7 @@ describe('History Branching', () => {
 
       // Branch 'keep' should still exist
       const branches = history.getBranches()
-      expect(branches.map(b => b.name)).toContain('keep')
+      expect(branches.map((b) => b.name)).toContain('keep')
     })
   })
 
@@ -253,7 +253,7 @@ describe('History Branching', () => {
       store.setState({ value: 2 })
 
       const commits = history.getHistory()
-      
+
       // Each commit should have a parent (except root)
       for (let i = 1; i < commits.length; i++) {
         expect(commits[i].parent).toBeTruthy()
@@ -306,13 +306,13 @@ describe('History Branching', () => {
       store.setState({ value: 1 })
       store.setState({ value: 2 })
 
-      const mainBranch = history.getBranches().find(b => b.name === 'main')
+      const mainBranch = history.getBranches().find((b) => b.name === 'main')
       const currentHead = mainBranch?.head
 
       store.setState({ value: 3 })
 
-      const updatedBranch = history.getBranches().find(b => b.name === 'main')
-      
+      const updatedBranch = history.getBranches().find((b) => b.name === 'main')
+
       // Head should have moved
       expect(updatedBranch?.head).not.toBe(currentHead)
     })
@@ -369,10 +369,10 @@ describe('History Branching', () => {
           profile: {
             name: 'Alice',
             settings: {
-              theme: 'dark'
-            }
-          }
-        }
+              theme: 'dark',
+            },
+          },
+        },
       })
       const history = createHistoryBranching(store)
 
@@ -381,10 +381,10 @@ describe('History Branching', () => {
           profile: {
             name: 'Bob',
             settings: {
-              theme: 'light'
-            }
-          }
-        }
+              theme: 'light',
+            },
+          },
+        },
       })
 
       history.back()
@@ -463,9 +463,9 @@ describe('History Branching', () => {
       history.createBranch('release_v1.0')
 
       const branches = history.getBranches()
-      expect(branches.map(b => b.name)).toContain('feature/add-login')
-      expect(branches.map(b => b.name)).toContain('bugfix-123')
-      expect(branches.map(b => b.name)).toContain('release_v1.0')
+      expect(branches.map((b) => b.name)).toContain('feature/add-login')
+      expect(branches.map((b) => b.name)).toContain('bugfix-123')
+      expect(branches.map((b) => b.name)).toContain('release_v1.0')
     })
   })
 
@@ -475,7 +475,7 @@ describe('History Branching', () => {
       const history = createHistoryBranching(store)
 
       store.setState({ value: 1 })
-      
+
       history.createBranch('feature')
       history.checkout('feature')
       store.setState({ value: 2, name: 'feature-work' })
@@ -525,7 +525,7 @@ describe('History Branching', () => {
       store.setState({ value: 1 })
       store.setState({ value: 2 })
       const commits = history.getHistory()
-      
+
       const middleCommitId = commits[1].id
       const result = history.goto(middleCommitId)
 
@@ -548,7 +548,7 @@ describe('History Branching', () => {
       store.setState({ value: 1 })
       store.setState({ value: 2 })
       store.setState({ value: 3 })
-      
+
       const commits = history.getHistory()
       const rootId = commits[0].id
       const lastId = commits[commits.length - 1].id
@@ -570,7 +570,7 @@ describe('History Branching', () => {
       store.setState({ value: 2 })
 
       const visualization = history.visualize()
-      
+
       expect(visualization).toContain('INIT')
       expect(visualization).toContain('UPDATE')
       expect(visualization).toContain('●') // current marker
@@ -585,9 +585,9 @@ describe('History Branching', () => {
 
       const visualization = history.visualize()
       const lines = visualization.split('\n')
-      
+
       // The current node should have ● marker
-      const currentLine = lines.find(line => line.includes('●'))
+      const currentLine = lines.find((line) => line.includes('●'))
       expect(currentLine).toBeTruthy()
     })
 
@@ -596,14 +596,14 @@ describe('History Branching', () => {
       const history = createHistoryBranching(store)
 
       store.setState({ value: 1 })
-      
+
       history.createBranch('feature')
       history.checkout('feature')
       store.setState({ value: 2 })
       store.setState({ value: 3 })
 
       const visualization = history.visualize()
-      
+
       expect(visualization).toBeTruthy()
       expect(visualization.split('\n').length).toBeGreaterThan(1)
     })
@@ -626,7 +626,7 @@ describe('History Branching', () => {
       store.setState({ value: 3 })
 
       const visualization = history.visualize()
-      
+
       // Should show tree structure with branches (at least multiple lines)
       expect(visualization.split('\n').length).toBeGreaterThan(2)
       // The visualization includes branch indicators like ├─ or └─

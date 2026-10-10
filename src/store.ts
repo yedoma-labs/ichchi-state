@@ -1,17 +1,17 @@
-import type { Store, StoreConfig, Listener, Middleware, SetStateFn } from './types'
 import { createDevTools } from './devtools'
 import { createPersist } from './persist'
-import { sanitizeObject, deepClone } from './security'
+import { sanitizeObject } from './security'
+import type { Listener, Middleware, SetStateFn, Store, StoreConfig } from './types'
 
 export function createStore<T extends object>(
   initialState: T,
-  config: StoreConfig<T> = {}
+  config: StoreConfig<T> = {},
 ): Store<T> {
   let state = initialState
   const listeners = new Set<Listener<T>>()
   let devtools: ReturnType<typeof createDevTools> | null = null
   let persistCleanup: (() => void) | null = null
-  
+
   // SECURITY: Limit max listeners to prevent DoS (CWE-770)
   const maxListeners = config.maxListeners ?? 1000
 
@@ -36,10 +36,10 @@ export function createStore<T extends object>(
   const setState: SetStateFn<T> = (partial, actionName = 'setState') => {
     const prevState = state
     const nextPartial = typeof partial === 'function' ? partial(state) : partial
-    
+
     // SECURITY: Sanitize incoming state updates
     const sanitizedPartial = sanitizeObject(nextPartial)
-    
+
     // SECURITY: Deep clone to prevent reference leakage (CWE-668)
     // Use shallow merge for performance, but clone nested objects on demand
     state = { ...state, ...sanitizedPartial }
@@ -54,6 +54,7 @@ export function createStore<T extends object>(
     }
 
     // Notify listeners
+    // biome-ignore lint/suspicious/useIterableCallbackReturn: callback result is intentionally ignored
     listeners.forEach((listener) => listener(state, prevState))
   }
 
@@ -62,10 +63,10 @@ export function createStore<T extends object>(
     if (listeners.size >= maxListeners) {
       throw new Error(
         `[Security] Maximum number of listeners (${maxListeners}) exceeded. ` +
-        'Possible memory leak or DoS attempt.'
+          'Possible memory leak or DoS attempt.',
       )
     }
-    
+
     listeners.add(listener)
     return () => listeners.delete(listener)
   }

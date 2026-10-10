@@ -1,15 +1,15 @@
 /**
  * Test utilities for React component testing
  */
-import { render, RenderOptions, RenderResult } from '@testing-library/react'
-import { ReactElement } from 'react'
+import { type RenderOptions, type RenderResult, render } from '@testing-library/react'
+import type { ReactElement } from 'react'
 
 /**
  * Custom render function that wraps components with common providers
  */
 export function renderWithProviders(
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
+  options?: Omit<RenderOptions, 'wrapper'>,
 ): RenderResult {
   return render(ui, { ...options })
 }

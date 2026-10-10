@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest'
-import React, { useState } from 'react'
 import { screen, waitFor } from '@testing-library/react'
-import { renderWithProviders, userEvent } from './test-utils'
-import { createStore } from './store'
+import React, { useState } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { useStore, useStoreSelector } from './react'
+import { createStore } from './store'
+import { renderWithProviders, userEvent } from './test-utils'
 
 describe('React Integration - Real Components', () => {
   describe('useStore with real React', () => {
@@ -34,9 +34,7 @@ describe('React Integration - Real Components', () => {
         return (
           <div>
             <div data-testid="count">{state.count}</div>
-            <button onClick={() => store.setState({ count: state.count + 1 })}>
-              Increment
-            </button>
+            <button onClick={() => store.setState({ count: state.count + 1 })}>Increment</button>
           </div>
         )
       }
@@ -181,7 +179,7 @@ describe('React Integration - Real Components', () => {
 
       renderWithProviders(<App />)
 
-      const initialSubscribers = subscriber.mock.calls.length
+      const _initialSubscribers = subscriber.mock.calls.length
 
       await userEvent.click(screen.getByRole('button'))
 
@@ -197,7 +195,7 @@ describe('React Integration - Real Components', () => {
   describe('Store with actions pattern', () => {
     it('should work with actions pattern', async () => {
       const store = createStore({ count: 0 })
-      
+
       const actions = {
         increment: () => store.setState((s) => ({ count: s.count + 1 })),
         decrement: () => store.setState((s) => ({ count: s.count - 1 })),
@@ -289,9 +287,7 @@ describe('React Integration - Real Components', () => {
                 <li key={i}>{item}</li>
               ))}
             </ul>
-            <button onClick={() => store.setState({ items: [...state.items, 'D'] })}>
-              Add
-            </button>
+            <button onClick={() => store.setState({ items: [...state.items, 'D'] })}>Add</button>
             <button onClick={() => store.setState({ items: state.items.slice(0, -1) })}>
               Remove
             </button>

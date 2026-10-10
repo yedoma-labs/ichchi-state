@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
-import { createStore } from './store'
+import { describe, expect, it, vi } from 'vitest'
 import { subscribeToField, subscribeToFields } from './field-subscriptions'
+import { createStore } from './store'
 
 describe('Field Subscriptions', () => {
   describe('subscribeToField', () => {
@@ -30,9 +30,9 @@ describe('Field Subscriptions', () => {
       const store = createStore({
         user: {
           profile: {
-            name: 'Alice'
-          }
-        }
+            name: 'Alice',
+          },
+        },
       })
       const listener = vi.fn()
 
@@ -41,9 +41,9 @@ describe('Field Subscriptions', () => {
       store.setState({
         user: {
           profile: {
-            name: 'Bob'
-          }
-        }
+            name: 'Bob',
+          },
+        },
       })
 
       expect(listener).toHaveBeenCalledWith('Bob', 'Alice')
@@ -54,10 +54,10 @@ describe('Field Subscriptions', () => {
         a: {
           b: {
             c: {
-              d: 'deep'
-            }
-          }
-        }
+              d: 'deep',
+            },
+          },
+        },
       })
       const listener = vi.fn()
 
@@ -67,10 +67,10 @@ describe('Field Subscriptions', () => {
         a: {
           b: {
             c: {
-              d: 'deeper'
-            }
-          }
-        }
+              d: 'deeper',
+            },
+          },
+        },
       })
 
       expect(listener).toHaveBeenCalledWith('deeper', 'deep')
@@ -78,7 +78,7 @@ describe('Field Subscriptions', () => {
 
     it('should handle undefined values in path', () => {
       const store = createStore<any>({
-        user: undefined
+        user: undefined,
       })
       const listener = vi.fn()
 
@@ -86,8 +86,8 @@ describe('Field Subscriptions', () => {
 
       store.setState({
         user: {
-          name: 'Alice'
-        }
+          name: 'Alice',
+        },
       })
 
       expect(listener).toHaveBeenCalledWith('Alice', undefined)
@@ -95,7 +95,7 @@ describe('Field Subscriptions', () => {
 
     it('should handle null values in path', () => {
       const store = createStore<any>({
-        user: null
+        user: null,
       })
       const listener = vi.fn()
 
@@ -103,8 +103,8 @@ describe('Field Subscriptions', () => {
 
       store.setState({
         user: {
-          name: 'Alice'
-        }
+          name: 'Alice',
+        },
       })
 
       expect(listener).toHaveBeenCalledWith('Alice', undefined)
@@ -188,10 +188,7 @@ describe('Field Subscriptions', () => {
       const newUser = { name: 'Bob', age: 25 }
       store.setState({ user: newUser })
 
-      expect(listener).toHaveBeenCalledWith(
-        newUser,
-        { name: 'Alice', age: 30 }
-      )
+      expect(listener).toHaveBeenCalledWith(newUser, { name: 'Alice', age: 30 })
     })
 
     it('should handle array field changes', () => {
@@ -253,9 +250,9 @@ describe('Field Subscriptions', () => {
         user: {
           profile: {
             name: 'Alice',
-            email: 'alice@example.com'
-          }
-        }
+            email: 'alice@example.com',
+          },
+        },
       })
       const listener = vi.fn()
 
@@ -265,16 +262,16 @@ describe('Field Subscriptions', () => {
         user: {
           profile: {
             name: 'Bob',
-            email: 'alice@example.com'
-          }
-        }
+            email: 'alice@example.com',
+          },
+        },
       })
 
       const changes = listener.mock.calls[0][0]
       expect(changes.size).toBe(1)
       expect(changes.get('user.profile.name')).toEqual({
         current: 'Bob',
-        previous: 'Alice'
+        previous: 'Alice',
       })
     })
 
@@ -336,7 +333,7 @@ describe('Field Subscriptions', () => {
 
     it('should handle undefined and null in nested paths', () => {
       const store = createStore<any>({
-        data: undefined
+        data: undefined,
       })
       const listener = vi.fn()
 
@@ -344,14 +341,14 @@ describe('Field Subscriptions', () => {
 
       store.setState({
         data: {
-          value: 42
-        }
+          value: 42,
+        },
       })
 
       const changes = listener.mock.calls[0][0]
       expect(changes.get('data.value')).toEqual({
         current: 42,
-        previous: undefined
+        previous: undefined,
       })
     })
   })

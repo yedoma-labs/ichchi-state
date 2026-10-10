@@ -1,13 +1,13 @@
-import type { Store } from './types'
 import { validatePath } from './security'
+import type { Store } from './types'
 
 type PathValue<T, P> = P extends keyof T
   ? T[P]
   : P extends `${infer K}.${infer R}`
-  ? K extends keyof T
-    ? PathValue<T[K], R>
+    ? K extends keyof T
+      ? PathValue<T[K], R>
+      : never
     : never
-  : never
 
 type Path<T> = keyof T | (string & {})
 
@@ -19,8 +19,10 @@ export function subscribeToField<T extends object, P extends Path<T>>(
   store: Store<T>,
   path: P,
   listener: (value: PathValue<T, P>, prevValue: PathValue<T, P>) => void,
-  equals: (a: any, b: any) => boolean = Object.is
+  // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
+  equals: (a: any, b: any) => boolean = Object.is,
 ): () => void {
+  // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
   const getValueAtPath = (obj: any, p: string): any => {
     // SECURITY: Validate path to prevent prototype pollution (CWE-22)
     validatePath(p)
@@ -52,8 +54,10 @@ export function subscribeToField<T extends object, P extends Path<T>>(
 export function subscribeToFields<T extends object>(
   store: Store<T>,
   paths: Array<Path<T>>,
-  listener: (changes: Map<string, { current: any; previous: any }>) => void
+  // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
+  listener: (changes: Map<string, { current: any; previous: any }>) => void,
 ): () => void {
+  // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
   const getValueAtPath = (obj: any, p: string): any => {
     // SECURITY: Validate path to prevent prototype pollution (CWE-22)
     validatePath(p)
@@ -67,9 +71,10 @@ export function subscribeToFields<T extends object>(
   }
 
   return store.subscribe((state, prevState) => {
+    // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
     const changes = new Map<string, { current: any; previous: any }>()
 
-    paths.forEach(path => {
+    paths.forEach((path) => {
       const current = getValueAtPath(state, path as string)
       const previous = getValueAtPath(prevState, path as string)
 
