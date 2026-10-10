@@ -7,7 +7,7 @@ export default defineConfig({
     middleware: 'src/middleware.ts',
   },
   format: ['esm', 'cjs'],
-  dts: true,
+  dts: false,
   splitting: false,
   clean: true,
   minify: true,
