@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createStore } from './store'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { crossTabSync } from './cross-tab-sync'
+import { createStore } from './store'
 
 // Mock BroadcastChannel
 class MockBroadcastChannel {
@@ -17,7 +17,7 @@ class MockBroadcastChannel {
 
   postMessage(data: any) {
     const channels = MockBroadcastChannel.channels.get(this.name) || []
-    channels.forEach(channel => {
+    channels.forEach((channel) => {
       if (channel !== this && channel.onmessage) {
         channel.onmessage(new MessageEvent('message', { data }))
       }
@@ -33,13 +33,14 @@ class MockBroadcastChannel {
   }
 
   static clearAll() {
+    // biome-ignore lint/complexity/noThisInStatic: intentional use of this in static context
     this.channels.clear()
   }
 }
 
 Object.defineProperty(global, 'BroadcastChannel', {
   value: MockBroadcastChannel,
-  writable: true
+  writable: true,
 })
 
 describe('Cross-tab synchronization', () => {
@@ -65,7 +66,7 @@ describe('Cross-tab synchronization', () => {
     store1.setState({ count: 5 })
 
     // Wait for sync delay
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     // Check localStorage was updated
     const stored = localStorage.getItem('test-sync')
@@ -79,15 +80,15 @@ describe('Cross-tab synchronization', () => {
   it('should handle storage with filter', async () => {
     const store = createStore({ count: 0, secret: 'hidden' })
 
-    const cleanup = crossTabSync(store, { 
+    const cleanup = crossTabSync(store, {
       key: 'filtered-sync',
-      filter: (state) => ({ count: state.count })
+      filter: (state) => ({ count: state.count }),
     })
 
     store.setState({ count: 5, secret: 'still hidden' })
 
     // Wait for sync delay
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     const stored = localStorage.getItem('filtered-sync')
     expect(stored).toBeTruthy()
@@ -103,9 +104,9 @@ describe('Cross-tab synchronization', () => {
     const cleanup = crossTabSync(store, { key: 'cleanup-test' })
 
     store.setState({ count: 5 })
-    
+
     // Wait for sync
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
     expect(localStorage.getItem('cleanup-test')).toBeTruthy()
 
     cleanup()
@@ -113,22 +114,22 @@ describe('Cross-tab synchronization', () => {
     // Further updates should not sync
     localStorage.removeItem('cleanup-test')
     store.setState({ count: 10 })
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
     expect(store.getState().count).toBe(10)
   })
 
   it('should use custom sync delay', async () => {
     const store = createStore({ count: 0 })
-    const cleanup = crossTabSync(store, { 
+    const cleanup = crossTabSync(store, {
       key: 'delay-test',
-      syncDelay: 10
+      syncDelay: 10,
     })
 
     store.setState({ count: 5 })
-    
+
     // Should sync quickly with shorter delay
-    await new Promise(resolve => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50))
     expect(localStorage.getItem('delay-test')).toBeTruthy()
 
     cleanup()
@@ -144,11 +145,11 @@ describe('Cross-tab synchronization', () => {
     storeA.setState({ value: 1 })
     storeB.setState({ value: 2 })
 
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     const storedA = localStorage.getItem('store-a')
     const storedB = localStorage.getItem('store-b')
-    
+
     expect(storedA).toBeTruthy()
     expect(storedB).toBeTruthy()
     expect(JSON.parse(storedA!).value).toBe(1)
@@ -169,13 +170,13 @@ describe('Cross-tab synchronization', () => {
     const storageEvent = new StorageEvent('storage', {
       key: 'sync-event-test',
       newValue: JSON.stringify({ count: 42 }),
-      oldValue: JSON.stringify({ count: 0 })
+      oldValue: JSON.stringify({ count: 0 }),
     })
 
     window.dispatchEvent(storageEvent)
 
     // Wait a bit for event to be processed
-    await new Promise(resolve => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(store1.getState().count).toBe(42)
     expect(store2.getState().count).toBe(42)
@@ -190,11 +191,11 @@ describe('Cross-tab synchronization', () => {
 
     const storageEvent = new StorageEvent('storage', {
       key: 'wrong-key',
-      newValue: JSON.stringify({ count: 99 })
+      newValue: JSON.stringify({ count: 99 }),
     })
 
     window.dispatchEvent(storageEvent)
-    await new Promise(resolve => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(store.getState().count).toBe(0)
 
@@ -207,11 +208,11 @@ describe('Cross-tab synchronization', () => {
 
     const storageEvent = new StorageEvent('storage', {
       key: 'test-key',
-      newValue: null
+      newValue: null,
     })
 
     window.dispatchEvent(storageEvent)
-    await new Promise(resolve => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(store.getState().count).toBe(0)
 
@@ -225,16 +226,16 @@ describe('Cross-tab synchronization', () => {
 
     const storageEvent = new StorageEvent('storage', {
       key: 'test-key',
-      newValue: 'invalid json {'
+      newValue: 'invalid json {',
     })
 
     window.dispatchEvent(storageEvent)
-    await new Promise(resolve => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50))
 
     // Error comes from safeJSONParse now
     expect(errorSpy).toHaveBeenCalled()
     const hasJSONError = (errorSpy.mock.calls as any).some((call: any) =>
-      call[0]?.includes('JSON.parse failed')
+      call[0]?.includes('JSON.parse failed'),
     )
     expect(hasJSONError).toBe(true)
     expect(store.getState().count).toBe(0)
@@ -245,40 +246,40 @@ describe('Cross-tab synchronization', () => {
 
   it('should handle errors when broadcasting state', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    
+
     // Create a custom storage that throws on setItem
     const mockStorage = {
       getItem: (key: string) => localStorage.getItem(key),
       setItem: () => {
         throw new Error('Storage full')
       },
-      removeItem: (key: string) => localStorage.removeItem(key)
+      removeItem: (key: string) => localStorage.removeItem(key),
     }
-    
+
     const store = createStore({ count: 0 })
     const cleanup = crossTabSync(store, {
       key: 'test-key',
-      syncDelay: 10
+      syncDelay: 10,
     })
 
     // Temporarily override localStorage to use mockStorage
     const originalStorage = global.localStorage
     Object.defineProperty(global, 'localStorage', {
       value: mockStorage,
-      writable: true
+      writable: true,
     })
 
     store.setState({ count: 5 })
-    await new Promise(resolve => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(errorSpy).toHaveBeenCalledWith(
       'Failed to broadcast state to other tabs:',
-      expect.any(Error)
+      expect.any(Error),
     )
 
     Object.defineProperty(global, 'localStorage', {
       value: originalStorage,
-      writable: true
+      writable: true,
     })
     errorSpy.mockRestore()
     cleanup()
@@ -286,7 +287,7 @@ describe('Cross-tab synchronization', () => {
 
   it('should return noop in non-browser environment', () => {
     const originalWindow = global.window
-    // @ts-ignore
+    // @ts-expect-error
     delete global.window
 
     const store = createStore({ count: 0 })

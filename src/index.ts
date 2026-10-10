@@ -1,29 +1,28 @@
-export { createStore, applyMiddleware } from './store'
-export { createDevTools } from './devtools'
-export { createPersist } from './persist'
-export type {
-  Store,
-  StoreConfig,
-  Listener,
-  Selector,
-  Unsubscribe,
-  PersistConfig,
-  Middleware,
-  SetStateFn,
-  DevToolsConnection,
-} from './types'
+export type { AsyncOptions, AsyncState } from './async-state'
+export { asyncState, createAsync } from './async-state'
+export { createBatcher } from './batch-updates'
+export type { Computed } from './computed'
 
 // Advanced features
 export { computed, computedMap } from './computed'
-export { subscribeToField, subscribeToFields } from './field-subscriptions'
-export { crossTabSync } from './cross-tab-sync'
-export { createOptimisticUpdates } from './optimistic-updates'
-export { createAsync, asyncState } from './async-state'
-export { createBatcher } from './batch-updates'
-export { createSnapshots } from './snapshots'
-export { createHistoryBranching } from './history-branching'
-
-export type { Computed } from './computed'
-export type { AsyncState, AsyncOptions } from './async-state'
 export type { CrossTabSyncOptions } from './cross-tab-sync'
+export { crossTabSync } from './cross-tab-sync'
+export { createDevTools } from './devtools'
+export { subscribeToField, subscribeToFields } from './field-subscriptions'
+export { createHistoryBranching } from './history-branching'
+export { createOptimisticUpdates } from './optimistic-updates'
+export { createPersist } from './persist'
 export type { Snapshot, StateDiff } from './snapshots'
+export { createSnapshots } from './snapshots'
+export { applyMiddleware, createStore } from './store'
+export type {
+  DevToolsConnection,
+  Listener,
+  Middleware,
+  PersistConfig,
+  Selector,
+  SetStateFn,
+  Store,
+  StoreConfig,
+  Unsubscribe,
+} from './types'

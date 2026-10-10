@@ -18,20 +18,14 @@ export interface AsyncOptions {
  * Create async state manager with built-in loading/error handling
  * Similar to React Query but simpler and integrated with the store
  */
-export function createAsync<T extends object, K extends keyof T>(
-  store: Store<T>,
-  key: K
-) {
+export function createAsync<T extends object, K extends keyof T>(store: Store<T>, key: K) {
   type DataType = T[K] extends AsyncState<infer U> ? U : never
 
   return {
     /**
      * Execute an async action with automatic loading/error state
      */
-    async execute(
-      asyncFn: () => Promise<DataType>,
-      options: AsyncOptions = {}
-    ): Promise<DataType> {
+    async execute(asyncFn: () => Promise<DataType>, options: AsyncOptions = {}): Promise<DataType> {
       const { retry = 0, retryDelay = 1000, staleTime = 0 } = options
 
       // Check if data is fresh
@@ -45,14 +39,18 @@ export function createAsync<T extends object, K extends keyof T>(
       }
 
       // Set loading state
-      store.setState({
-        [key]: {
-          data: currentState?.data || null,
-          loading: true,
-          error: null,
-          timestamp: currentState?.timestamp || null
-        }
-      } as any, `ASYNC_${String(key)}_LOADING`)
+      store.setState(
+        {
+          [key]: {
+            data: currentState?.data || null,
+            loading: true,
+            error: null,
+            timestamp: currentState?.timestamp || null,
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
+        } as any,
+        `ASYNC_${String(key)}_LOADING`,
+      )
 
       let lastError: Error | null = null
       let attempts = 0
@@ -62,14 +60,18 @@ export function createAsync<T extends object, K extends keyof T>(
           const data = await asyncFn()
 
           // Set success state
-          store.setState({
-            [key]: {
-              data,
-              loading: false,
-              error: null,
-              timestamp: Date.now()
-            }
-          } as any, `ASYNC_${String(key)}_SUCCESS`)
+          store.setState(
+            {
+              [key]: {
+                data,
+                loading: false,
+                error: null,
+                timestamp: Date.now(),
+              },
+              // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
+            } as any,
+            `ASYNC_${String(key)}_SUCCESS`,
+          )
 
           return data
         } catch (error) {
@@ -77,20 +79,24 @@ export function createAsync<T extends object, K extends keyof T>(
           attempts++
 
           if (attempts <= retry) {
-            await new Promise(resolve => setTimeout(resolve, retryDelay))
+            await new Promise((resolve) => setTimeout(resolve, retryDelay))
           }
         }
       }
 
       // Set error state
-      store.setState({
-        [key]: {
-          data: currentState?.data || null,
-          loading: false,
-          error: lastError,
-          timestamp: currentState?.timestamp || null
-        }
-      } as any, `ASYNC_${String(key)}_ERROR`)
+      store.setState(
+        {
+          [key]: {
+            data: currentState?.data || null,
+            loading: false,
+            error: lastError,
+            timestamp: currentState?.timestamp || null,
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
+        } as any,
+        `ASYNC_${String(key)}_ERROR`,
+      )
 
       throw lastError
     },
@@ -100,26 +106,34 @@ export function createAsync<T extends object, K extends keyof T>(
      */
     invalidate(): void {
       const currentState = store.getState()[key] as AsyncState<DataType>
-      store.setState({
-        [key]: {
-          ...currentState,
-          timestamp: null
-        }
-      } as any, `ASYNC_${String(key)}_INVALIDATE`)
+      store.setState(
+        {
+          [key]: {
+            ...currentState,
+            timestamp: null,
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
+        } as any,
+        `ASYNC_${String(key)}_INVALIDATE`,
+      )
     },
 
     /**
      * Reset to initial state
      */
     reset(): void {
-      store.setState({
-        [key]: {
-          data: null,
-          loading: false,
-          error: null,
-          timestamp: null
-        }
-      } as any, `ASYNC_${String(key)}_RESET`)
+      store.setState(
+        {
+          [key]: {
+            data: null,
+            loading: false,
+            error: null,
+            timestamp: null,
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
+        } as any,
+        `ASYNC_${String(key)}_RESET`,
+      )
     },
 
     /**
@@ -129,15 +143,19 @@ export function createAsync<T extends object, K extends keyof T>(
       const currentState = store.getState()[key] as AsyncState<DataType>
       const newData = updater(currentState?.data || null)
 
-      store.setState({
-        [key]: {
-          data: newData,
-          loading: false,
-          error: null,
-          timestamp: Date.now()
-        }
-      } as any, `ASYNC_${String(key)}_MUTATE`)
-    }
+      store.setState(
+        {
+          [key]: {
+            data: newData,
+            loading: false,
+            error: null,
+            timestamp: Date.now(),
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
+        } as any,
+        `ASYNC_${String(key)}_MUTATE`,
+      )
+    },
   }
 }
 
@@ -149,6 +167,6 @@ export function asyncState<T>(initialData: T | null = null): AsyncState<T> {
     data: initialData,
     loading: false,
     error: null,
-    timestamp: null
+    timestamp: null,
   }
 }

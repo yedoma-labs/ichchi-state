@@ -1,5 +1,5 @@
-import type { Store } from './types'
 import { securityWarn } from './security'
+import type { Store } from './types'
 
 interface OptimisticUpdate<T> {
   id: string
@@ -15,23 +15,23 @@ export function createOptimisticUpdates<T extends object>(
   options: {
     maxPending?: number
     ttlMs?: number // SECURITY: TTL for cleanup
-  } = {}
+  } = {},
 ) {
   const { maxPending = 100, ttlMs = 5 * 60 * 1000 } = options // 5 minutes default
   const pendingUpdates = new Map<string, OptimisticUpdate<T>>()
-  
+
   // SECURITY: Periodic cleanup of stale updates (CWE-770)
   const cleanupInterval = setInterval(() => {
     const now = Date.now()
     const stale: string[] = []
-    
+
     pendingUpdates.forEach((update, id) => {
       if (now - update.timestamp > ttlMs) {
         stale.push(id)
       }
     })
-    
-    stale.forEach(id => {
+
+    stale.forEach((id) => {
       securityWarn(`[Security] Cleaning up stale optimistic update: ${id}`)
       pendingUpdates.delete(id)
     })
@@ -44,16 +44,16 @@ export function createOptimisticUpdates<T extends object>(
     optimistic<R>(
       id: string,
       updateFn: (state: T) => Partial<T>,
-      asyncAction: () => Promise<R>
+      asyncAction: () => Promise<R>,
     ): Promise<R> {
       // SECURITY: Check max pending updates (CWE-770)
       if (pendingUpdates.size >= maxPending) {
         throw new Error(
           `[Security] Maximum pending optimistic updates (${maxPending}) exceeded. ` +
-          'Possible memory leak or DoS attempt.'
+            'Possible memory leak or DoS attempt.',
         )
       }
-      
+
       const rollback = store.getState()
       const update = updateFn(rollback)
 
@@ -61,7 +61,7 @@ export function createOptimisticUpdates<T extends object>(
       pendingUpdates.set(id, {
         id,
         rollback,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       })
 
       // Apply optimistic update
@@ -88,6 +88,7 @@ export function createOptimisticUpdates<T extends object>(
       const update = pendingUpdates.get(id)
       if (!update) return false
 
+      // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
       store.setState(update.rollback as any, `ROLLBACK_${id}`)
       pendingUpdates.delete(id)
       return true
@@ -98,10 +99,10 @@ export function createOptimisticUpdates<T extends object>(
      */
     rollbackAll(): void {
       // Sort by timestamp (oldest first) to rollback in correct order
-      const updates = Array.from(pendingUpdates.values())
-        .sort((a, b) => a.timestamp - b.timestamp)
+      const updates = Array.from(pendingUpdates.values()).sort((a, b) => a.timestamp - b.timestamp)
 
-      updates.forEach(update => {
+      updates.forEach((update) => {
+        // biome-ignore lint/suspicious/noExplicitAny: generic payload types are intentionally open
         store.setState(update.rollback as any, `ROLLBACK_${update.id}`)
       })
 
@@ -114,7 +115,7 @@ export function createOptimisticUpdates<T extends object>(
     getPending(): string[] {
       return Array.from(pendingUpdates.keys())
     },
-    
+
     /**
      * Cleanup interval (call on destroy)
      */
@@ -128,6 +129,6 @@ export function createOptimisticUpdates<T extends object>(
      */
     isPending(id: string): boolean {
       return pendingUpdates.has(id)
-    }
+    },
   }
 }

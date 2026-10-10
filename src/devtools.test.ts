@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDevTools } from './devtools'
 
 describe('DevTools', () => {
@@ -8,7 +8,7 @@ describe('DevTools', () => {
     beforeEach(() => {
       mockDevTools = {
         init: vi.fn(),
-        send: vi.fn()
+        send: vi.fn(),
       }
     })
 
@@ -33,20 +33,20 @@ describe('DevTools', () => {
     it('should create devtools connection when extension is available', () => {
       // Mock the extension
       ;(window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
-        connect: vi.fn(() => mockDevTools)
+        connect: vi.fn(() => mockDevTools),
       }
 
       const result = createDevTools('MyStore')
 
       expect(result).not.toBeNull()
       expect((window as any).__REDUX_DEVTOOLS_EXTENSION__.connect).toHaveBeenCalledWith({
-        name: 'MyStore'
+        name: 'MyStore',
       })
     })
 
     it('should expose init method', () => {
       ;(window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
-        connect: vi.fn(() => mockDevTools)
+        connect: vi.fn(() => mockDevTools),
       }
 
       const devtools = createDevTools('MyStore')
@@ -59,7 +59,7 @@ describe('DevTools', () => {
 
     it('should expose send method', () => {
       ;(window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
-        connect: vi.fn(() => mockDevTools)
+        connect: vi.fn(() => mockDevTools),
       }
 
       const devtools = createDevTools('MyStore')
@@ -73,7 +73,7 @@ describe('DevTools', () => {
 
     it('should send action without payload', () => {
       ;(window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
-        connect: vi.fn(() => mockDevTools)
+        connect: vi.fn(() => mockDevTools),
       }
 
       const devtools = createDevTools('MyStore')
@@ -87,30 +87,30 @@ describe('DevTools', () => {
 
     it('should handle multiple store connections', () => {
       ;(window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
-        connect: vi.fn(() => mockDevTools)
+        connect: vi.fn(() => mockDevTools),
       }
 
-      const devtools1 = createDevTools('Store1')
-      const devtools2 = createDevTools('Store2')
+      const _devtools1 = createDevTools('Store1')
+      const _devtools2 = createDevTools('Store2')
 
       expect((window as any).__REDUX_DEVTOOLS_EXTENSION__.connect).toHaveBeenCalledTimes(2)
       expect((window as any).__REDUX_DEVTOOLS_EXTENSION__.connect).toHaveBeenCalledWith({
-        name: 'Store1'
+        name: 'Store1',
       })
       expect((window as any).__REDUX_DEVTOOLS_EXTENSION__.connect).toHaveBeenCalledWith({
-        name: 'Store2'
+        name: 'Store2',
       })
     })
 
     it('should handle complex state objects', () => {
       ;(window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
-        connect: vi.fn(() => mockDevTools)
+        connect: vi.fn(() => mockDevTools),
       }
 
       const devtools = createDevTools('MyStore')
       const complexState = {
         users: [{ id: 1, name: 'Alice' }],
-        settings: { theme: 'dark', nested: { deep: true } }
+        settings: { theme: 'dark', nested: { deep: true } },
       }
 
       devtools?.init(complexState)
@@ -120,13 +120,13 @@ describe('DevTools', () => {
 
     it('should handle actions with complex payloads', () => {
       ;(window as any).__REDUX_DEVTOOLS_EXTENSION__ = {
-        connect: vi.fn(() => mockDevTools)
+        connect: vi.fn(() => mockDevTools),
       }
 
       const devtools = createDevTools('MyStore')
       const action = {
         type: 'ADD_USER',
-        payload: { id: 1, name: 'Alice', metadata: { role: 'admin' } }
+        payload: { id: 1, name: 'Alice', metadata: { role: 'admin' } },
       }
       const state = { users: [] }
 

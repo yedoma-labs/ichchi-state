@@ -1,25 +1,21 @@
 import React, { useEffect, useState, useSyncExternalStore } from 'react'
-import type { Store, Selector } from './types'
+import type { Selector, Store } from './types'
 
 // Export advanced hooks
-export { 
-  useComputed, 
-  useField, 
+export {
+  useAsync,
+  useBatchedMutations,
+  useComputed,
+  useField,
   useFields,
-  useAsync, 
   useOptimistic,
-  useBatchedMutations 
 } from './react-advanced'
 
 /**
  * Hook to use the entire store state
  */
 export function useStore<T extends object>(store: Store<T>): T {
-  return useSyncExternalStore(
-    store.subscribe,
-    store.getState,
-    store.getState
-  )
+  return useSyncExternalStore(store.subscribe, store.getState, store.getState)
 }
 
 /**
@@ -28,7 +24,7 @@ export function useStore<T extends object>(store: Store<T>): T {
 export function useStoreSelector<T extends object, R>(
   store: Store<T>,
   selector: Selector<T, R>,
-  equalityFn: (a: R, b: R) => boolean = Object.is
+  equalityFn: (a: R, b: R) => boolean = Object.is,
 ): R {
   const [selectedState, setSelectedState] = useState(() => selector(store.getState()))
 
@@ -67,9 +63,9 @@ export function createStoreContext<T extends object>(store: Store<T>) {
     return useStore(store)
   }
 
-  const useStoreSelectorContext = <R extends unknown>(
+  const useStoreSelectorContext = <R>(
     selector: Selector<T, R>,
-    equalityFn?: (a: R, b: R) => boolean
+    equalityFn?: (a: R, b: R) => boolean,
   ): R => {
     const store = React.useContext(StoreContext)
     if (!store) {
@@ -84,5 +80,3 @@ export function createStoreContext<T extends object>(store: Store<T>) {
     useSelector: useStoreSelectorContext,
   }
 }
-
-
