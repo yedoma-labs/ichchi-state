@@ -1,3 +1,10 @@
+## [0.1.2](https://github.com/yedoma-labs/ichchi-state/compare/v0.1.1...v0.1.2) (2026-10-10)
+
+
+### Bug Fixes
+
+* **deps:** override vulnerable transitive dependencies ([#7](https://github.com/yedoma-labs/ichchi-state/issues/7)) ([38c9ad7](https://github.com/yedoma-labs/ichchi-state/commit/38c9ad71290b8ab77e6e06e876bb62aceec8b9be))
+
 ## [0.1.1](https://github.com/yedoma-labs/ichchi-state/compare/v0.1.0...v0.1.1) (2026-10-10)
 
 
