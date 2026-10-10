@@ -35,18 +35,19 @@
     "test:coverage": "vitest run --coverage src",
     "bench": "vitest bench src",
     "bench:run": "vitest bench --run src",
-    "demo": "pnpm run build && npx serve . -l 5173",
-    "demo:dev": "npx serve . -l 5173",
-    "e2e": "npx playwright test",
-    "test:e2e": "npx playwright test",
-    "e2e:ui": "npx playwright test --ui",
-    "e2e:serve": "npx serve examples/e2e -l 5173",
-    "e2e:install": "npx playwright install chromium",
+    "demo": "pnpm run build && pnpm exec serve . -l 5173",
+    "demo:dev": "pnpm exec serve . -l 5173",
+    "e2e": "pnpm exec playwright test",
+    "test:e2e": "pnpm exec playwright test",
+    "e2e:ui": "pnpm exec playwright test --ui",
+    "e2e:serve": "pnpm exec serve examples/e2e -l 5173",
+    "e2e:install": "pnpm exec playwright install chromium",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run typecheck && npm run test:run && npm run build"
+    "prepublishOnly": "pnpm run typecheck && pnpm run test:run && pnpm run build"
   },
   "simple-git-hooks": {
-    "pre-push": "npm run typecheck && npm run test:run && npm run build"
+    "pre-push": "pnpm run typecheck && pnpm run test:run && pnpm run build",
+    "commit-msg": "pnpm exec commitlint --edit $1"
   },
   "keywords": [
     "state",
@@ -64,7 +65,16 @@
     "url": "https://github.com/yedoma-labs/ichchi-state"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@playwright/test": "^1.61.0",
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^11.0.1",
+    "@semantic-release/github": "^12.0.10",
+    "@semantic-release/npm": "^13.2.0",
+    "@semantic-release/release-notes-generator": "^14.1.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -76,6 +86,7 @@
     "happy-dom": "^20.10.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "semantic-release": "^25.0.9",
     "serve": "^14.2.6",
     "simple-git-hooks": "^2.13.1",
     "tsup": "^8.5.1",
