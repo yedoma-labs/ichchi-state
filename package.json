@@ -104,5 +104,6 @@
     "react": {
       "optional": true
     }
-  }
+  },
+  "packageManager": "pnpm@12.14.0"
 }
