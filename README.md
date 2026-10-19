@@ -60,8 +60,8 @@ npm install @yedoma-labs/ichchi-state
 # Using yarn
 yarn add @yedoma-labs/ichchi-state
 
-# Using bun
-bun add @yedoma-labs/ichchi-state
+# Using pnpm
+pnpm add @yedoma-labs/ichchi-state
 ```
 
 ## Quick Start
