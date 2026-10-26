@@ -67,9 +67,9 @@
     "url": "https://github.com/yedoma-labs/ichchi-state"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.15",
-    "@commitlint/cli": "^21.2.3",
-    "@commitlint/config-conventional": "^21.2.3",
+    "@biomejs/biome": "^2.6.3",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
     "@playwright/test": "^1.64.1",
     "@semantic-release/changelog": "^7.0.0",
     "@semantic-release/commit-analyzer": "^13.0.1",
@@ -87,7 +87,7 @@
     "@types/react": "^19.3.0",
     "@typescript/typescript6": "^6.0.2",
     "@vitest/coverage-v8": "^5.0.5",
-    "happy-dom": "^21.0.3",
+    "happy-dom": "^21.0.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "semantic-release": "^25.0.9",
@@ -105,5 +105,5 @@
       "optional": true
     }
   },
-  "packageManager": "pnpm@12.14.0"
+  "packageManager": "pnpm@12.15.0"
 }
