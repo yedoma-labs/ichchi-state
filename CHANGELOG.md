@@ -1,3 +1,10 @@
+## [0.1.3](https://github.com/yedoma-labs/ichchi-state/compare/v0.1.2...v0.1.3) (2026-10-26)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies to latest ([#17](https://github.com/yedoma-labs/ichchi-state/issues/17)) ([f52c95e](https://github.com/yedoma-labs/ichchi-state/commit/f52c95ef1dd307b93c239d95723be0ddc0d1718f))
+
 ## [0.1.2](https://github.com/yedoma-labs/ichchi-state/compare/v0.1.1...v0.1.2) (2026-10-10)
 
 
