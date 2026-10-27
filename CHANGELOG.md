@@ -1,3 +1,15 @@
+# [0.2.0](https://github.com/yedoma-labs/ichchi-state/compare/v0.1.3...v0.2.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* **computed:** resubscribe to store when a listener is added after all were removed ([b01e0f7](https://github.com/yedoma-labs/ichchi-state/commit/b01e0f702a8903b297f3a0dfe7cd83739ec494b6))
+
+
+### Features
+
+* **store:** add reset() to restore the initial state ([666e10f](https://github.com/yedoma-labs/ichchi-state/commit/666e10f97c6e1ef9e13b3e5aac6e4d9777b7f903))
+
 ## [0.1.3](https://github.com/yedoma-labs/ichchi-state/compare/v0.1.2...v0.1.3) (2026-10-26)
 
 

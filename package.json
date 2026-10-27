@@ -1,6 +1,6 @@
 {
   "name": "@yedoma-labs/ichchi-state",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Lightweight, TypeScript-first state manager with DevTools and time-travel",
   "type": "module",
   "main": "./dist/index.cjs",
