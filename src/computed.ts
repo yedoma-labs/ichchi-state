@@ -22,24 +22,40 @@ export function computed<T extends object, R>(
 
   let cachedValue = selector(store.getState())
   const listeners = new Set<(value: R) => void>()
+  // The store subscription only exists while at least one listener is attached.
+  let unsubscribeFromStore: (() => void) | null = null
 
-  const unsubscribe = store.subscribe((state) => {
-    const nextValue = selector(state)
-    if (!equals(cachedValue, nextValue)) {
-      cachedValue = nextValue
-      // biome-ignore lint/suspicious/useIterableCallbackReturn: callback result is intentionally ignored
-      listeners.forEach((listener) => listener(cachedValue))
-    }
-  })
+  const attachToStore = () => {
+    // State may have changed while detached, so refresh the cache before listening again.
+    cachedValue = selector(store.getState())
+    unsubscribeFromStore = store.subscribe((state) => {
+      const nextValue = selector(state)
+      if (!equals(cachedValue, nextValue)) {
+        cachedValue = nextValue
+        // biome-ignore lint/suspicious/useIterableCallbackReturn: callback result is intentionally ignored
+        listeners.forEach((listener) => listener(cachedValue))
+      }
+    })
+  }
+
+  const detachFromStore = () => {
+    unsubscribeFromStore?.()
+    unsubscribeFromStore = null
+  }
+
+  attachToStore()
 
   return {
     get: () => cachedValue,
     subscribe: (listener) => {
+      if (!unsubscribeFromStore) {
+        attachToStore()
+      }
       listeners.add(listener)
       return () => {
         listeners.delete(listener)
         if (listeners.size === 0) {
-          unsubscribe()
+          detachFromStore()
         }
       }
     },

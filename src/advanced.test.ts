@@ -147,6 +147,43 @@ describe('Advanced Features', () => {
       // Value is stale since no listeners
       expect(doubled.get()).toBe(4)
     })
+
+    it('should resubscribe to the store when a listener is added after all were removed', () => {
+      const store = createStore({ count: 0 })
+      const doubled = computed(store, (state) => state.count * 2)
+
+      const first = vi.fn()
+      const unsubscribeFirst = doubled.subscribe(first)
+      unsubscribeFirst()
+
+      store.setState({ count: 5 })
+
+      const second = vi.fn()
+      doubled.subscribe(second)
+      expect(doubled.get()).toBe(10)
+
+      store.setState({ count: 6 })
+      expect(second).toHaveBeenCalledTimes(1)
+      expect(second).toHaveBeenCalledWith(12)
+      expect(doubled.get()).toBe(12)
+      expect(first).not.toHaveBeenCalled()
+    })
+
+    it('should ignore a second unsubscribe call without touching the store', () => {
+      const store = createStore({ count: 0 })
+      const doubled = computed(store, (state) => state.count * 2)
+
+      const listener = vi.fn()
+      const unsubscribe = doubled.subscribe(listener)
+      unsubscribe()
+      expect(() => unsubscribe()).not.toThrow()
+
+      const next = vi.fn()
+      doubled.subscribe(next)
+      store.setState({ count: 1 })
+      expect(next).toHaveBeenCalledWith(2)
+      expect(listener).not.toHaveBeenCalled()
+    })
   })
 
   describe('Field subscriptions', () => {
