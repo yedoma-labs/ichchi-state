@@ -3,11 +3,15 @@ import { createPersist } from './persist'
 import { sanitizeObject } from './security'
 import type { Listener, Middleware, SetStateFn, Store, StoreConfig } from './types'
 
+// Config-time initial state per store, so applyMiddleware can route reset() through its middleware.
+const initialStates = new WeakMap<object, () => object>()
+
 export function createStore<T extends object>(
   initialState: T,
   config: StoreConfig<T> = {},
 ): Store<T> {
   let state = initialState
+  const snapshotInitialState = () => ({ ...initialState })
   const listeners = new Set<Listener<T>>()
   let devtools: ReturnType<typeof createDevTools> | null = null
   let persistCleanup: (() => void) | null = null
@@ -71,12 +75,18 @@ export function createStore<T extends object>(
     return () => listeners.delete(listener)
   }
 
+  const reset = () => {
+    setState(() => snapshotInitialState(), 'RESET')
+  }
+
   const destroy = () => {
     listeners.clear()
     persistCleanup?.()
   }
 
-  return { getState, setState, subscribe, destroy }
+  const store: Store<T> = { getState, setState, subscribe, reset, destroy }
+  initialStates.set(store, snapshotInitialState)
+  return store
 }
 
 export function applyMiddleware<T extends object>(
@@ -89,5 +99,10 @@ export function applyMiddleware<T extends object>(
     setState = middleware(store)(setState)
   })
 
-  return { ...store, setState }
+  const snapshotInitialState = initialStates.get(store)
+  const reset = snapshotInitialState
+    ? () => setState(() => snapshotInitialState() as Partial<T>, 'RESET')
+    : () => store.reset()
+
+  return { ...store, setState, reset }
 }

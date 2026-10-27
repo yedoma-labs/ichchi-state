@@ -399,6 +399,7 @@ Creates a new store.
 - `getState()` - Returns current state
 - `setState(partial, actionName?)` - Updates state
 - `subscribe(listener)` - Subscribes to state changes
+- `reset()` - Restores the initial state passed to `createStore` (dispatched as a `RESET` action, so middleware such as `timeTravel` records it)
 - `destroy()` - Cleanup and remove listeners
 
 ### `applyMiddleware(store, ...middlewares)`
@@ -488,7 +489,7 @@ See [Release Process](.github/RELEASE.md) for details.
 GitHub Actions uses:
 - **pnpm** for package management (faster, disk-efficient)
 - **Node.js** latest (currently 22, auto-updates to 24+)
-- **Vitest** for unit/integration tests (258 tests)
+- **Vitest** for unit/integration tests (266 tests)
 - **Playwright** for E2E tests (manual only - not in CI)
 
 **Workflows:**
@@ -507,7 +508,7 @@ GitHub Actions uses:
 ### Security
 
 - All 16 known vulnerabilities (3 Critical, 7 High) have been fixed in v0.1.0
-- 94.73% test coverage with 258 passing tests
+- 94.35% test coverage with 266 passing tests
 - Comprehensive security test suite included
 - Security warnings only appear in development (`NODE_ENV !== 'production'`)
 - Production builds are silent by default

@@ -28,6 +28,8 @@ export interface Store<T> {
   getState: () => T
   setState: SetStateFn<T>
   subscribe: (listener: Listener<T>) => Unsubscribe
+  /** Restores the initial state passed to createStore (dispatched as a 'RESET' action). */
+  reset: () => void
   destroy: () => void
 }
 

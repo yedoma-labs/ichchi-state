@@ -165,3 +165,83 @@ describe('applyMiddleware', () => {
     expect(enhancedStore.getState()).toEqual({ count: 1 })
   })
 })
+
+describe('store.reset', () => {
+  it('should restore the initial state', () => {
+    const store = createStore({ count: 0, name: 'test' })
+    store.setState({ count: 5, name: 'changed' })
+
+    store.reset()
+
+    expect(store.getState()).toEqual({ count: 0, name: 'test' })
+  })
+
+  it('should notify listeners with the new and previous state', () => {
+    const store = createStore({ count: 0 })
+    const listener = vi.fn()
+    store.setState({ count: 3 })
+    store.subscribe(listener)
+
+    store.reset()
+
+    expect(listener).toHaveBeenCalledWith({ count: 0 }, { count: 3 })
+  })
+
+  it('should not mutate the initial state object', () => {
+    const initial = { count: 0 }
+    const store = createStore(initial)
+    store.setState({ count: 9 })
+
+    store.reset()
+    store.setState({ count: 4 })
+
+    expect(initial).toEqual({ count: 0 })
+    expect(store.getState()).toEqual({ count: 4 })
+  })
+
+  it('should restore the config-time initial state, not the hydrated persisted state', () => {
+    const key = 'reset-test-persisted'
+    window.localStorage.setItem(key, JSON.stringify({ state: { count: 42 }, version: 1 }))
+    try {
+      const store = createStore({ count: 0 }, { persist: { key } })
+      expect(store.getState()).toEqual({ count: 42 })
+
+      store.reset()
+
+      expect(store.getState()).toEqual({ count: 0 })
+      expect(JSON.parse(window.localStorage.getItem(key) ?? 'null')).toEqual({
+        state: { count: 0 },
+        version: 1,
+      })
+    } finally {
+      window.localStorage.removeItem(key)
+    }
+  })
+
+  it('should route reset through middleware as a RESET action', () => {
+    const actions: Array<string | undefined> = []
+    const spy: Middleware<{ count: number }> = () => (next) => (partial, actionName) => {
+      actions.push(actionName)
+      next(partial, actionName)
+    }
+
+    const store = createStore({ count: 0 })
+    const enhancedStore = applyMiddleware(store, spy)
+    enhancedStore.setState({ count: 2 }, 'INCREMENT')
+
+    enhancedStore.reset()
+
+    expect(actions).toEqual(['INCREMENT', 'RESET'])
+    expect(enhancedStore.getState()).toEqual({ count: 0 })
+  })
+
+  it('should keep the reset method on middleware-enhanced stores', () => {
+    const store = createStore({ count: 0 })
+    const enhancedStore = applyMiddleware(store, () => (next) => next)
+
+    enhancedStore.setState({ count: 1 })
+    enhancedStore.reset()
+
+    expect(enhancedStore.getState()).toEqual({ count: 0 })
+  })
+})
