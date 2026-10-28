@@ -15,8 +15,6 @@
 
 Lightweight, TypeScript-first state manager with DevTools and time-travel debugging.
 
-> **About the name:** *ichchi* (иччи) comes from the Yakutian (Sakha) language, meaning "guardian spirit" — protective spirits that watch over places, objects, and natural phenomena. Like the permafrost (yedoma) preserves ancient matter, ichchi guards and preserves the essential state of your application.
-
 ## Features
 
 - 🪶 **< 3KB** gzipped
